@@ -16,7 +16,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.corvit.corvit_lms.R
@@ -25,11 +24,7 @@ import androidx.navigation.NavController
 import com.corvit.corvit_lms.ui.theme.Montserrat
 
 @Composable
-fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {}
-
-@Preview(showSystemUi = true)
-@Composable
-fun LoginScreenPreview() {
+fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -56,7 +51,7 @@ fun LoginScreenPreview() {
                     .height(360.dp)
                     .padding(horizontal = 16.dp)
                     .clip(RoundedCornerShape(24.dp))
-                    .background(Color(0xFFBFC0C0))
+                    .background(Color(0xFFe9ecef))
             ) {
 
                 Column(
@@ -64,26 +59,29 @@ fun LoginScreenPreview() {
                     verticalArrangement = Arrangement.Center
                 ) {
 
-                    Text("Login",fontFamily = Montserrat, fontWeight = FontWeight.Bold, color = Color.Black, fontSize = 32.sp)
+                    Text("Login",fontFamily = Montserrat,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black,
+                        fontSize = 40.sp)
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(22.dp))
 
                     // EMAIL FIELD
                     LabelledTextField(
-                        label = "Password",
-                        value = password,
-                        onValueChange = { password = it },
-                        placeholder = "Enter your Password"
+                        label = "Email",
+                        value = email,
+                        onValueChange = { email = it },
+                        placeholder = "Enter your email"
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
                     // PASSWORD FIELD
                     LabelledTextField(
-                        label = "Email",
-                        value = email,
-                        onValueChange = { email = it },
-                        placeholder = "Enter your email"
+                        label = "Password",
+                        value = password,
+                        onValueChange = { password = it },
+                        placeholder = "Enter your password"
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
@@ -105,7 +103,7 @@ fun LoginScreenPreview() {
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             Text(text = "Don't have an account?",
                 color = Color(0xFF001011),
@@ -113,7 +111,7 @@ fun LoginScreenPreview() {
                 fontFamily = Montserrat,
                 fontWeight = FontWeight.Normal)
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             //SIGN-UP BUTTON
             Button(
@@ -146,7 +144,7 @@ fun LabelledTextField(
             text = label,fontFamily = Montserrat, fontWeight = FontWeight.Bold,
             color = Color(0xFF001011),
             fontSize = 14.sp,
-            modifier = Modifier.padding(start = 4.dp, bottom = 6.dp)
+            modifier = Modifier.padding(start = 8.dp, bottom = 6.dp)
         )
 
         BasicTextField(
@@ -162,7 +160,8 @@ fun LabelledTextField(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .border(1.dp, Color(0xFF001011), RoundedCornerShape(20.dp))
+                        .border(1.dp, Color(0xFF001011),
+                            RoundedCornerShape(30.dp))
                         .padding(horizontal = 16.dp, vertical = 14.dp)
                 ) {
                     if (value.isEmpty()) {
