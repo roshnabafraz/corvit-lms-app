@@ -7,13 +7,22 @@ import androidx.navigation.compose.rememberNavController
 import com.corvit.corvit_lms.screens.HomeScreen
 import com.corvit.corvit_lms.screens.LoginScreen
 import com.corvit.corvit_lms.screens.SignupScreen
+import com.corvit.corvit_lms.screens.SplashScreen
 import com.corvit.corvit_lms.viewmodel.AuthViewModel
 
 @Composable
 fun MainNavGraph(authViewModel: AuthViewModel){
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "login", builder= {
+    NavHost(navController = navController, startDestination = "splash", builder= {
+
+        composable("splash") {
+            SplashScreen {
+                navController.navigate("login") {
+                    popUpTo("splash") { inclusive = true }
+                }
+            }
+        }
 
         composable("login"){
             LoginScreen( navController, authViewModel )
