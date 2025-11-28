@@ -22,8 +22,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.corvit.corvit_lms.R
 import com.corvit.corvit_lms.ui.theme.Montserrat
+import com.corvit.corvit_lms.viewmodel.CoursesViewModel
+import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun CategoryScreen(){

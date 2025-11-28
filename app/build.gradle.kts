@@ -59,6 +59,8 @@ dependencies {
     implementation(libs.firebase.crashlytics.buildtools)
     implementation(libs.androidx.compose.runtime.livedata)
     implementation(libs.firebase.firestore)
+    implementation(libs.androidx.benchmark.common)
+    implementation(libs.litert.support.api)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
