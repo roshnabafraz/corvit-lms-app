@@ -17,16 +17,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.corvit.corvit_lms.R
 import com.corvit.corvit_lms.ui.theme.Montserrat
-import com.corvit.corvit_lms.viewmodel.CoursesViewModel
-import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun CategoryScreen(){
@@ -41,9 +37,8 @@ fun CategoryScreen(){
 }
 
 
-@Preview
 @Composable
-fun CategoryCard(){
+fun CategoryCard(name : String){
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
@@ -53,7 +48,7 @@ fun CategoryCard(){
             .clip(RoundedCornerShape(16.dp))
     ){
         Image(
-            painter = painterResource(id = R.drawable.sample),
+            painter = painterResource(id = R.drawable.demo),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
@@ -66,11 +61,12 @@ fun CategoryCard(){
         )
 
         Text(
-            text = "Networking & Huawei Certifications",
+            text = name,
             fontFamily = Montserrat,
             fontWeight = FontWeight.Bold,
             color = Color.White,
             fontSize = 35.sp,
+            lineHeight = 42.sp,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp),

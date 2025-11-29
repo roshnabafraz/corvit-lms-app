@@ -7,12 +7,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,17 +24,20 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.corvit.corvit_lms.ui.theme.Montserrat
 import com.corvit.corvit_lms.viewmodel.AuthState
 import com.corvit.corvit_lms.viewmodel.AuthViewModel
+import com.corvit.corvit_lms.viewmodel.CatalogViewModel
 
 @Composable
-fun HomeScreen(navController: NavController, authViewModel: AuthViewModel){
+fun HomeScreen(navController: NavController, authViewModel: AuthViewModel, catalogViewModel : CatalogViewModel){
 
     val authState = authViewModel.authState.observeAsState()
     val context = LocalContext.current
 
+    val categories by catalogViewModel.categorylist.collectAsStateWithLifecycle()
 
     LaunchedEffect(authState.value) {
         when (authState.value) {
@@ -44,36 +50,67 @@ fun HomeScreen(navController: NavController, authViewModel: AuthViewModel){
         }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ){
-
-        Column {
-            Text("HomePage...",fontFamily = Montserrat,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black,
-                fontSize = 40.sp)
-
-            Spacer(modifier = Modifier.height(22.dp))
-
-            Button(
-                onClick = {
-                    authViewModel.logout()
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFBB2233),
-                    contentColor = Color(0xFFfbffe5)
-                ),
-                shape = RoundedCornerShape(100.dp),
-                modifier = Modifier
-                    .fillMaxWidth(0.8f)
-                    .height(60.dp)
-            ) {
-                Text("Logout", fontFamily = Montserrat, fontWeight = FontWeight.Bold)
+                if (categories.isEmpty()) {
+                Text("No categories found")
+            } else {
+                    LazyColumn {
+                        items(categories){
+                                category ->
+                            CategoryCard(name = category.name)
+                        }
+                    }
             }
-        }
-    }
+
+//    Box(
+//        modifier = Modifier
+//            .fillMaxSize(),
+//        contentAlignment = Alignment.Center
+//    ){
+//
+//        Column {
+//
+//
+//
+//
+////            Text("HomePage...",fontFamily = Montserrat,
+////                fontWeight = FontWeight.Bold,
+////                color = Color.Black,
+////                fontSize = 40.sp)
+//            if (categories.isEmpty()) {
+//                Text("No categories found")
+//            } else {
+//                LazyColumn {
+//                    items(categories) { category ->
+//                        Text(
+//                            text = category.name,
+//                            fontFamily = Montserrat,
+//                            fontWeight = FontWeight.Bold,
+//                            fontSize = 20.sp,
+//                            color = Color.Black
+//                        )
+//                    }
+//                }
+//            }
+//
+//
+//            Spacer(modifier = Modifier.height(22.dp))
+//
+//            Button(
+//                onClick = {
+//                    authViewModel.logout()
+//                },
+//                colors = ButtonDefaults.buttonColors(
+//                    containerColor = Color(0xFFBB2233),
+//                    contentColor = Color(0xFFfbffe5)
+//                ),
+//                shape = RoundedCornerShape(100.dp),
+//                modifier = Modifier
+//                    .fillMaxWidth(0.8f)
+//                    .height(60.dp)
+//            ) {
+//                Text("Logout", fontFamily = Montserrat, fontWeight = FontWeight.Bold)
+//            }
+//        }
+//    }
 
 }

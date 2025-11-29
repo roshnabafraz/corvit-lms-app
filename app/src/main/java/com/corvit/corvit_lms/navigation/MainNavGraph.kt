@@ -9,9 +9,10 @@ import com.corvit.corvit_lms.screens.LoginScreen
 import com.corvit.corvit_lms.screens.SignupScreen
 import com.corvit.corvit_lms.screens.SplashScreen
 import com.corvit.corvit_lms.viewmodel.AuthViewModel
+import com.corvit.corvit_lms.viewmodel.CatalogViewModel
 
 @Composable
-fun MainNavGraph(authViewModel: AuthViewModel){
+fun MainNavGraph(authViewModel: AuthViewModel, catalogViewModel : CatalogViewModel){
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "splash", builder= {
@@ -33,7 +34,7 @@ fun MainNavGraph(authViewModel: AuthViewModel){
         }
 
         composable("home"){
-            HomeScreen( navController, authViewModel )
+            HomeScreen( navController, authViewModel, catalogViewModel)
         }
     })
 }

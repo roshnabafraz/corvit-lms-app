@@ -35,53 +35,53 @@ fun CustomBottomBar(navController: NavController, isPressed: String)
         Row(modifier = Modifier.fillMaxWidth().padding(bottom = 15.dp),
             horizontalArrangement = Arrangement.SpaceEvenly){
 
-//            IconButton(modifier = Modifier.weight(1f),
-//                onClick = {
-//                    navController.navigate("home")
-//                    isPressed.value = "home" }) {
-//                Icon(
-//                    painter = if(isPressed.value == "home") painterResource(id= R.drawable.home_bold)
-//                    else painterResource(id= R.drawable.home),
-//                    contentDescription = if(isPressed.value == "home") "home"  else null,
-//                    modifier = Modifier.size(IconSize)
-//                )
-//            }
+            IconButton(modifier = Modifier.weight(1f),
+                onClick = {
+                    navController.navigate("home")
+                    isPressed.value = "home" }) {
+                Icon(
+                    painter = if(isPressed.value == "home") painterResource(id= R.drawable.home_bold)
+                    else painterResource(id= R.drawable.home),
+                    contentDescription = if(isPressed.value == "home") "home"  else null,
+                    modifier = Modifier.size(IconSize)
+                )
+            }
 
-//            IconButton(modifier = Modifier.weight(1f),
-//                onClick = {
-//                    navController.navigate("categories")
-//                    isPressed.value = "categories" }) {
-//                Icon(
-//                    painter = if(isPressed.value == "categories") painterResource(id= R.drawable.category_bold)
-//                    else painterResource(id= R.drawable.category),
-//                    contentDescription = if(isPressed.value == "categories") "categories"  else null,
-//                    modifier = Modifier.size(IconSize)
-//                )
-//            }
-//
-//            IconButton(modifier = Modifier.weight(1f),
-//                onClick = {
-//                    navController.navigate("saved")
-//                    isPressed.value = "heart" }) {
-//                Icon(
-//                    painter = if(isPressed.value == "heart") painterResource(id= R.drawable.heart_bold)
-//                    else painterResource(id= R.drawable.heart),
-//                    contentDescription = if(isPressed.value == "heart") "heart"  else null,
-//                    modifier = Modifier.size(IconSize)
-//                )
-//            }
-//
-//            IconButton(modifier = Modifier.weight(1f),
-//                onClick = {
-//                    navController.navigate("settings")
-//                    isPressed.value = "setting" }) {
-//                Icon(
-//                    painter = if(isPressed.value == "setting") painterResource(id= R.drawable.setting_bold)
-//                    else painterResource(id= R.drawable.setting),
-//                    contentDescription = if(isPressed.value == "setting") "setting"  else null,
-//                    modifier = Modifier.size(IconSize)
-//                )
-//            }
+            IconButton(modifier = Modifier.weight(1f),
+                onClick = {
+                    navController.navigate("categories")
+                    isPressed.value = "categories" }) {
+                Icon(
+                    painter = if(isPressed.value == "categories") painterResource(id= R.drawable.category_bold)
+                    else painterResource(id= R.drawable.category),
+                    contentDescription = if(isPressed.value == "categories") "categories"  else null,
+                    modifier = Modifier.size(IconSize)
+                )
+            }
+
+            IconButton(modifier = Modifier.weight(1f),
+                onClick = {
+                    navController.navigate("saved")
+                    isPressed.value = "heart" }) {
+                Icon(
+                    painter = if(isPressed.value == "heart") painterResource(id= R.drawable.heart_bold)
+                    else painterResource(id= R.drawable.heart),
+                    contentDescription = if(isPressed.value == "heart") "heart"  else null,
+                    modifier = Modifier.size(IconSize)
+                )
+            }
+
+            IconButton(modifier = Modifier.weight(1f),
+                onClick = {
+                    navController.navigate("settings")
+                    isPressed.value = "setting" }) {
+                Icon(
+                    painter = if(isPressed.value == "setting") painterResource(id= R.drawable.setting_bold)
+                    else painterResource(id= R.drawable.setting),
+                    contentDescription = if(isPressed.value == "setting") "setting"  else null,
+                    modifier = Modifier.size(IconSize)
+                )
+            }
         }
     }
 }
