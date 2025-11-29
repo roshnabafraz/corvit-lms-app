@@ -61,6 +61,7 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.androidx.benchmark.common)
     implementation(libs.litert.support.api)
+    implementation(libs.ads.mobile.sdk)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
