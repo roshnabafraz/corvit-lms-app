@@ -2,6 +2,7 @@ package com.corvit.corvit_lms.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -71,8 +72,14 @@ fun CategoryScreen(navController: NavController, authViewModel: AuthViewModel, c
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(categories) { category ->
-                    CategoryCard(name = category.name)
-                }
+                CategoryCard(
+                    name = category.name,
+                    onClick = {
+                        navController.navigate("course/${category.category_id}")
+                    }
+                )
+            }
+
             }
         }
 
@@ -80,7 +87,7 @@ fun CategoryScreen(navController: NavController, authViewModel: AuthViewModel, c
 
 
 @Composable
-fun CategoryCard(name : String){
+fun CategoryCard(name: String, onClick: () -> Unit) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
@@ -88,7 +95,8 @@ fun CategoryCard(name : String){
             .height(150.dp)
             .padding(vertical = 4.dp, horizontal = 10.dp)
             .clip(RoundedCornerShape(16.dp))
-    ){
+            .clickable { onClick() }   // ← IMPORTANT
+    ) {
         Image(
             painter = painterResource(id = R.drawable.demo),
             contentDescription = null,
@@ -104,16 +112,12 @@ fun CategoryCard(name : String){
 
         Text(
             text = name,
-            fontFamily = Montserrat,
-            fontWeight = FontWeight.Bold,
             color = Color.White,
             fontSize = 35.sp,
-            lineHeight = 42.sp,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp),
+            fontWeight = FontWeight.Bold,
+            fontFamily = Montserrat,
+            modifier = Modifier.fillMaxWidth(),
             textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
-
     }
 }

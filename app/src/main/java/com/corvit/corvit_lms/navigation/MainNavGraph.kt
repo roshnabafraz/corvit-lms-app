@@ -15,6 +15,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.corvit.corvit_lms.screens.CategoryScreen
+import com.corvit.corvit_lms.screens.CoursesScreen
 import com.corvit.corvit_lms.screens.HomeScreen
 import com.corvit.corvit_lms.screens.LoginScreen
 import com.corvit.corvit_lms.screens.SignupScreen
@@ -62,8 +63,12 @@ fun MainNavGraph(authViewModel: AuthViewModel, catalogViewModel : CatalogViewMod
             composable("login"){
                 LoginScreen( navController, authViewModel )
             }
+                composable("course/{categoryId}") { backStackEntry ->
+                    val categoryId = backStackEntry.arguments?.getString("categoryId") ?: ""
+                    CoursesScreen(navController, catalogViewModel, categoryId)
+                }
 
-            composable("signup"){
+                composable("signup"){
                 SignupScreen( navController, authViewModel )
             }
 
@@ -74,7 +79,6 @@ fun MainNavGraph(authViewModel: AuthViewModel, catalogViewModel : CatalogViewMod
             composable("categories"){
                 CategoryScreen( navController, authViewModel, catalogViewModel)
             }
-
         })
 
     }
