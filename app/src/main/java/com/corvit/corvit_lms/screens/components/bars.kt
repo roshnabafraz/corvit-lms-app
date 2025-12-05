@@ -29,10 +29,10 @@ fun CustomBottomBar(navController: NavController) {
     val iconSize = 35.dp
 
     val items = listOf(
-        BottomBarItem("home", R.drawable.home_linear, R.drawable.home_bold),
-        BottomBarItem("categories", R.drawable.grad_linear, R.drawable.grad_bold),
-        BottomBarItem("notifications", R.drawable.bell_linear, R.drawable.bell_bold),
-        BottomBarItem("settings", R.drawable.style_linear, R.drawable.style_bold)
+        BottomBarItem("home", "Home", R.drawable.home_linear, R.drawable.home_bold),
+        BottomBarItem("categories", "Categories", R.drawable.grad_linear, R.drawable.grad_bold),
+        BottomBarItem("notifications", "Alerts", R.drawable.bell_linear, R.drawable.bell_bold),
+        BottomBarItem("settings", "Settings", R.drawable.style_linear, R.drawable.style_bold)
     )
 
     Box(
@@ -70,6 +70,8 @@ fun CustomBottomBar(navController: NavController) {
 
 data class BottomBarItem(
     val route: String,
+    val label: String,
     val iconLinear: Int,
     val iconBold: Int
 )
+
