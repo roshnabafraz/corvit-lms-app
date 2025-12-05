@@ -1,6 +1,6 @@
 package com.corvit.corvit_lms.screens.components
 
-import ads_mobile_sdk.h6
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,8 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -70,7 +68,6 @@ fun CustomBottomBar(navController: NavController) {
     }
 }
 
-// Helper data class for bottom bar items
 data class BottomBarItem(
     val route: String,
     val iconLinear: Int,
