@@ -22,8 +22,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.corvit.corvit_lms.others.YouTubePlayer
 import com.corvit.corvit_lms.screens.components.CustomBottomBar
 import com.corvit.corvit_lms.ui.theme.Montserrat
 import com.corvit.corvit_lms.viewmodel.AuthState
@@ -49,6 +51,8 @@ fun HomeScreen(navController: NavController, authViewModel: AuthViewModel, catal
             }
         }
     }
+
+    YouTubePlayer(videoId = "TqFdVoRTyzo", lifecycleOwner = LocalLifecycleOwner.current)
 
 //    Scaffold(
 //        topBar = {
