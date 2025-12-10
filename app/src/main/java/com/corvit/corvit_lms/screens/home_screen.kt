@@ -52,7 +52,7 @@ fun HomeScreen(navController: NavController, authViewModel: AuthViewModel, catal
         }
     }
 
-    YouTubePlayer(videoId = "TqFdVoRTyzo", lifecycleOwner = LocalLifecycleOwner.current)
+    YouTubePlayer(videoId = "1_w8QEeYZT8", lifecycleOwner = LocalLifecycleOwner.current)
 
 //    Scaffold(
 //        topBar = {
