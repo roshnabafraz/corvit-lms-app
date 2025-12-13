@@ -76,7 +76,8 @@ fun MainNavGraph(authViewModel: AuthViewModel, catalogViewModel : CatalogViewMod
             }
 
             composable("home"){
-                HomeScreen( navController, authViewModel, catalogViewModel)
+                //HomeScreen( navController, authViewModel, catalogViewModel)
+                HomeScreen()
             }
 
             composable("categories"){
