@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,136 +26,248 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.time.format.TextStyle
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.runtime.*
+import com.corvit.corvit_lms.ui.theme.Montserrat
 
 @Preview(showSystemUi = true)
 @Composable
-fun ProfileScreen() {
+fun ProfileScreen(
+    onMyCoursesClick: () -> Unit = {},
+    onCertificatesClick: () -> Unit = {},
+    onPaymentsClick: () -> Unit = {},
+    onEditProfileClick: () -> Unit = {},
+    onHelpClick: () -> Unit = {},
+    onLogoutClick: () -> Unit = {},
+    onDarkModeChanged: (Boolean) -> Unit = {},
+    onNotificationsChanged: (Boolean) -> Unit = {}
+) {
 
-    Column(
+    var darkModeEnabled by remember { mutableStateOf(false) }
+    var notificationsEnabled by remember { mutableStateOf(true) }
+
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(20.dp)
+            .padding(horizontal = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
 
-        // Header
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        // Header - Horizontal Layout
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                    //.padding(vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
 
-                // Profile Image
+                // Profile Picture
                 Box(
                     modifier = Modifier
-                        .size(95.dp)
+                        .size(100.dp)
                         .clip(CircleShape)
                         .background(Color.LightGray)
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.width(16.dp))
 
-                Text(
-                    text = "Roshnab",
-//                    style = TextStyle(
-//                        fontSize = 22.sp,
-//                        fontWeight = FontWeight.Bold
-//                    )
-                )
+                // Name & Role
+                Column(
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "Roshnab Afraz",
+                        fontSize = 26.sp,
+                        fontWeight = FontWeight.Bold
+                    )
 
-                Text(
-                    text = "Student",
-                    color = Color.Gray,
-                    fontSize = 14.sp
-                )
+                    Text(
+                        text = "Student",
+                        fontSize = 15.sp,
+                        color = Color.Gray
+                    )
+                }
             }
         }
 
-        Spacer(modifier = Modifier.height(30.dp))
 
-        // Stats Row
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-
-            StatBox(title = "Enrolled", value = "5")
-            StatBox(title = "Completed", value = "2")
-            StatBox(title = "Certificates", value = "1")
+        // Quick Access
+        item {
+            SectionTitle("Quick Access")
+            SectionCard {
+                ClickableItem("My Courses", onMyCoursesClick)
+                DividerItem()
+                ClickableItem("Certificates", onCertificatesClick)
+                DividerItem()
+                ClickableItem("Payments", onPaymentsClick)
+            }
         }
 
-        Spacer(modifier = Modifier.height(25.dp))
+        // Settings
+        item {
+            SectionTitle("Settings")
+            SectionCard {
 
-        // Section: Quick Actions
-        Text(
-            text = "Quick Access",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.SemiBold
-        )
-        Spacer(modifier = Modifier.height(12.dp))
+                ClickableItem("Edit Profile", onEditProfileClick)
+                DividerItem()
 
-        CardItem("My Courses")
-        CardItem("Certificates")
-        CardItem("Assignments")
-        CardItem("Payments")
+                ToggleItem(
+                    title = "Notifications",
+                    checked = notificationsEnabled,
+                    onCheckedChange = {
+                        notificationsEnabled = it
+                        onNotificationsChanged(it)
+                    }
+                )
 
-        Spacer(modifier = Modifier.height(25.dp))
+                DividerItem()
 
-        Text(
-            text = "Settings",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.SemiBold
-        )
-        Spacer(modifier = Modifier.height(12.dp))
+                ToggleItem(
+                    title = "Dark Mode",
+                    checked = darkModeEnabled,
+                    onCheckedChange = {
+                        darkModeEnabled = it
+                        onDarkModeChanged(it)
+                    }
+                )
 
-        CardItem("Edit Profile")
-        CardItem("Notifications")
-        CardItem("Help & Support")
+                DividerItem()
 
-        Spacer(modifier = Modifier.height(30.dp))
+                ClickableItem("Help & Support", onHelpClick)
+            }
+        }
 
         // Logout
-        Text(
-            text = "Logout",
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 14.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(Color(0xFFE53935))
-                .padding(vertical = 12.dp),
-            color = Color.White,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Medium,
-            textAlign = TextAlign.Center
-        )
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(Color(0xFFE53935))
+                    .clickable { onLogoutClick() }
+                    .padding(vertical = 14.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Logout",
+                    color = Color.White,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+
+            AppVersionText(
+                version = "1.0.0",
+                releaseType = "Stable"
+            )
+        }
     }
 }
 
 @Composable
-fun StatBox(title: String, value: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = value,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold
-        )
+fun ClickableItem(
+    title: String,
+    onClick: () -> Unit
+) {
+    Text(
+        text = title,
+        fontSize = 15.sp,
+        fontFamily = Montserrat,
+        fontWeight = FontWeight.SemiBold,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(horizontal = 16.dp, vertical = 14.dp)
+    )
+}
+
+@Composable
+fun ToggleItem(
+    title: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
         Text(
             text = title,
-            color = Color.Gray,
-            fontSize = 13.sp
+            fontSize = 15.sp,
+            fontFamily = Montserrat,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.weight(1f)
+        )
+
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = Color.White,
+                checkedTrackColor = Color(0xFF4CAF50)
+            )
         )
     }
 }
 
 @Composable
-fun CardItem(title: String) {
+fun SectionTitle(title: String) {
+    Text(
+        text = title,
+        fontSize = 22.sp,
+        fontFamily = Montserrat,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier.padding(bottom = 8.dp)
+    )
+}
+
+@Composable
+fun SectionCard(content: @Composable ColumnScope.() -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(Color(0xFFF6F6F6))
+            .padding(vertical = 8.dp)
+    ) {
+        content()
+    }
+}
+
+@Composable
+fun DividerItem() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 6.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFFF6F6F6))
-            .padding(16.dp)
-    ) {
-        Text(text = title, fontSize = 15.sp)
-    }
+            .padding(horizontal = 20.dp)
+            .height(0.8.dp)
+            .background(Color(0xFFDDDDDD))
+    )
+}
+
+@Composable
+fun AppVersionText(
+    version: String,
+    releaseType: String // "Stable" or "Beta"
+) {
+    Text(
+        text = "App Version $version ($releaseType)",
+        fontSize = 14.sp,
+        fontFamily = Montserrat,
+        fontWeight = FontWeight.Normal,
+        color = Color.Gray,
+        textAlign = TextAlign.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 12.dp)
+    )
 }

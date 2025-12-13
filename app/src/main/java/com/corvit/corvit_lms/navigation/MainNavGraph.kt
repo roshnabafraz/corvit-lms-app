@@ -18,6 +18,8 @@ import com.corvit.corvit_lms.screens.CategoryScreen
 import com.corvit.corvit_lms.screens.CoursesScreen
 import com.corvit.corvit_lms.screens.HomeScreen
 import com.corvit.corvit_lms.screens.LoginScreen
+import com.corvit.corvit_lms.screens.NotificationScreen
+import com.corvit.corvit_lms.screens.ProfileScreen
 import com.corvit.corvit_lms.screens.SignupScreen
 import com.corvit.corvit_lms.screens.SplashScreen
 import com.corvit.corvit_lms.screens.components.CustomBottomBar
@@ -63,12 +65,13 @@ fun MainNavGraph(authViewModel: AuthViewModel, catalogViewModel : CatalogViewMod
             composable("login"){
                 LoginScreen( navController, authViewModel )
             }
-                composable("course/{categoryId}") { backStackEntry ->
+
+            composable("course/{categoryId}") { backStackEntry ->
                     val categoryId = backStackEntry.arguments?.getString("categoryId") ?: ""
                     CoursesScreen(navController, catalogViewModel, categoryId)
                 }
 
-                composable("signup"){
+            composable("signup"){
                 SignupScreen( navController, authViewModel )
             }
 
@@ -78,6 +81,14 @@ fun MainNavGraph(authViewModel: AuthViewModel, catalogViewModel : CatalogViewMod
 
             composable("categories"){
                 CategoryScreen( navController, authViewModel, catalogViewModel)
+            }
+
+            composable("notifications"){
+                NotificationScreen()
+            }
+
+            composable("profile"){
+                ProfileScreen()
             }
         })
 
