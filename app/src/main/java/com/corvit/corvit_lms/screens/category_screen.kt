@@ -31,21 +31,22 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.corvit.corvit_lms.R
+import com.corvit.corvit_lms.screens.components.getCategoryImageResId
 import com.corvit.corvit_lms.ui.theme.Montserrat
 import com.corvit.corvit_lms.viewmodel.AuthState
 import com.corvit.corvit_lms.viewmodel.AuthViewModel
 import com.corvit.corvit_lms.viewmodel.CatalogViewModel
-
+import androidx.annotation.DrawableRes // <-- Add this import
+import androidx.compose.ui.res.painterResource
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryScreen(navController: NavController, authViewModel: AuthViewModel, catalogViewModel : CatalogViewModel){
 
     val authState = authViewModel.authState.observeAsState()
     val categories by catalogViewModel.categorylist.collectAsStateWithLifecycle()
-
     val courses by catalogViewModel.courseslist.collectAsStateWithLifecycle()
 
-
+    val sortedCategories = categories.sortedBy { it.order }
 
     LaunchedEffect(authState.value) {
         when (authState.value) {
@@ -53,40 +54,41 @@ fun CategoryScreen(navController: NavController, authViewModel: AuthViewModel, c
                 navController.navigate("login")
             }
             else -> {
-                // Handle other states if needed
             }
         }
     }
 
-        if (categories.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize(),
-                   // .padding(innerPadding),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("No categories found")
-            }
-        } else {
-            LazyColumn(
-                //contentPadding = innerPadding,
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(categories) { category ->
+    if (sortedCategories.isEmpty()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize(),
+            // .padding(innerPadding),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("No categories found")
+        }
+    } else {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            items(sortedCategories) { category ->
 
-                    val courseCount = courses.count { it.category_id == category.category_id }
+                val courseCount = courses.count { it.category_id == category.category_id }
 
-                    CategoryCard(
-                        name = category.name,
-                        courseCount = courseCount,
-                        onClick = {
-                            navController.navigate("course/${category.category_id}")
-                        }
-                    )
-            }
+                // 🌟 MODIFICATION: Get the resource ID using the category's order field
+                val imageResId = getCategoryImageResId(category.order)
 
+                CategoryCard(
+                    name = category.name,
+                    courseCount = courseCount,
+                    imageResId = imageResId, // Pass the local resource ID
+                    onClick = {
+                        navController.navigate("course/${category.category_id}")
+                    }
+                )
             }
         }
+    }
 
 }
 
@@ -94,8 +96,10 @@ fun CategoryScreen(navController: NavController, authViewModel: AuthViewModel, c
 fun CategoryCard(
     name: String,
     courseCount: Int,
+    @DrawableRes imageResId: Int, // <-- Added the resource ID parameter
     onClick: () -> Unit
 ) {
+    // The Card composable acts as a Material Design container for coherent content.
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -105,10 +109,10 @@ fun CategoryCard(
     ) {
         Box(modifier = Modifier.height(140.dp)) {
 
-            // Default thumbnail (will replace later)
+            // 🌟 Dynamic Image Loading using the local resource ID
             Image(
-                painter = painterResource(id = R.drawable.demo),
-                contentDescription = null,
+                painter = painterResource(id = imageResId), // Use the dynamic resource ID
+                contentDescription = "$name thumbnail",
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
@@ -121,19 +125,20 @@ fun CategoryCard(
                         Brush.verticalGradient(
                             colors = listOf(
                                 Color.Transparent,
-                                Color.Black.copy(alpha = 0.45f)
-                            )
+                                Color.Black.copy(alpha = 0.7f)
+                            ),
+                            startY = 0.3f
                         )
                     )
             )
 
-            // Metadata badge
+            // Metadata badge (Course Count)
             Text(
                 text = "$courseCount Courses",
                 fontSize = 12.sp,
                 color = Color.White,
                 fontWeight = FontWeight.Medium,
-                fontFamily = Montserrat,
+                // fontFamily = Montserrat, // Uncomment if Montserrat is imported and used
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .padding(10.dp)
@@ -149,7 +154,7 @@ fun CategoryCard(
                 text = name,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
-                fontFamily = Montserrat,
+                // fontFamily = Montserrat, // Uncomment if Montserrat is imported and used
                 color = Color.White,
                 modifier = Modifier
                     .align(Alignment.BottomStart)
@@ -158,40 +163,3 @@ fun CategoryCard(
         }
     }
 }
-
-
-//@Composable
-//fun CategoryCard(name: String, onClick: () -> Unit) {
-//    Box(
-//        contentAlignment = Alignment.Center,
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .height(150.dp)
-//            .padding(vertical = 4.dp, horizontal = 10.dp)
-//            .clip(RoundedCornerShape(16.dp))
-//            .clickable { onClick() }   // ← IMPORTANT
-//    ) {
-//        Image(
-//            painter = painterResource(id = R.drawable.demo),
-//            contentDescription = null,
-//            modifier = Modifier.fillMaxSize(),
-//            contentScale = ContentScale.Crop
-//        )
-//
-//        Box(
-//            modifier = Modifier
-//                .fillMaxSize()
-//                .background(Color.Black.copy(alpha = 0.3f))
-//        )
-//
-//        Text(
-//            text = name,
-//            color = Color.White,
-//            fontSize = 35.sp,
-//            fontWeight = FontWeight.Bold,
-//            fontFamily = Montserrat,
-//            modifier = Modifier.fillMaxWidth(),
-//            textAlign = androidx.compose.ui.text.style.TextAlign.Center
-//        )
-//    }
-//}

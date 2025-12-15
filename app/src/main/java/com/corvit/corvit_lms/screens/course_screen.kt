@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.corvit.corvit_lms.R
+import com.corvit.corvit_lms.data.Course
 import com.corvit.corvit_lms.ui.theme.Montserrat
 import com.corvit.corvit_lms.viewmodel.CatalogViewModel
 
@@ -43,20 +44,22 @@ fun CoursesScreen(
 ) {
 
     val allCourses by catalogViewModel.courseslist.collectAsStateWithLifecycle()
-    val courses = allCourses.filter { it.category_id == categoryId }
+
+    val filteredCourses = allCourses.filter { it.category_id == categoryId }
+
+    val courses = filteredCourses.sortedBy { it.name }
 
     if (courses.isEmpty()) {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Text("No courses found")
+            Text("No courses found for this category")
         }
     } else {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(courses) { course ->
-                CourseCard(name = course.name, certification = course.certification)
-               // CourseCardWide(name = course.name, certification = course.certification)
+                CourseCard(course = course)
             }
         }
     }
@@ -124,8 +127,7 @@ fun CourseCardWide(
 
 @Composable
 fun CourseCard(
-    name: String,
-    certification: Boolean
+    course : Course
 ) {
     Card(
         modifier = Modifier
@@ -161,7 +163,7 @@ fun CourseCard(
 
                 // Certification badge
                 Text(
-                    text = if (certification) "Certified" else "No Certification",
+                    text = if (course.certification) "Certified" else "No Certification", // 🌟 ACTUAL DATA
                     fontSize = 12.sp,
                     fontFamily = Montserrat,
                     fontWeight = FontWeight.Normal,
@@ -181,7 +183,7 @@ fun CourseCard(
 
             // Course Name
             Text(
-                text = name,
+                text = course.name, // 🌟 ACTUAL DATA
                 fontSize = 18.sp,
                 fontFamily = Montserrat,
                 fontWeight = FontWeight.Bold,
@@ -191,14 +193,40 @@ fun CourseCard(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Info Row
+            // Info Row: Level • Duration • Batch
+            // 🌟 ACTUAL DATA: Constructs the info string
+            val infoText = buildString {
+                append(course.courseLevel ?: "N/A Level")
+                append(" • ")
+                append(course.duration ?: "N/A Duration")
+                append(" • ")
+                append(course.batchType ?: "N/A Batch")
+            }
             Text(
-                text = "Intermediate • 2 Months • Hybrid",
+                text = infoText,
                 fontSize = 13.sp,
                 fontFamily = Montserrat,
                 fontWeight = FontWeight.Normal,
                 color = Color.DarkGray,
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                modifier = Modifier.padding(horizontal = 12.dp)
+            )
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            // Price Row
+            // 🌟 ACTUAL DATA: Displaying the main regular PKR price
+            val regularPrice = course.prices?.regular_pkr?.let {
+                // Simple formatting for display (e.g., 18000.0 -> Rs. 18,000)
+                "Fee: Rs. ${String.format("%,.0f", it)}"
+            } ?: "Price N/A"
+
+            Text(
+                text = regularPrice,
+                fontSize = 15.sp,
+                fontFamily = Montserrat,
+                fontWeight = FontWeight.SemiBold,
+                color = Color(0xFF006400), // Dark green for price
+                modifier = Modifier.padding(horizontal = 12.dp)
             )
 
             Spacer(modifier = Modifier.height(10.dp))
