@@ -36,7 +36,6 @@ import com.corvit.corvit_lms.screens.components.LocalThemeToggleState
 import com.corvit.corvit_lms.screens.components.ThemeToggleState
 import com.corvit.corvit_lms.ui.theme.CorvitLMSTheme
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainNavGraph(authViewModel: AuthViewModel, catalogViewModel : CatalogViewModel){

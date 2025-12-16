@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -32,12 +33,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.corvit.corvit_lms.R
 import com.corvit.corvit_lms.screens.components.getCategoryImageResId
-import com.corvit.corvit_lms.ui.theme.Montserrat
 import com.corvit.corvit_lms.viewmodel.AuthState
 import com.corvit.corvit_lms.viewmodel.AuthViewModel
 import com.corvit.corvit_lms.viewmodel.CatalogViewModel
-import androidx.annotation.DrawableRes // <-- Add this import
-import androidx.compose.ui.res.painterResource
+import androidx.annotation.DrawableRes
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryScreen(navController: NavController, authViewModel: AuthViewModel, catalogViewModel : CatalogViewModel){
@@ -60,12 +60,11 @@ fun CategoryScreen(navController: NavController, authViewModel: AuthViewModel, c
 
     if (sortedCategories.isEmpty()) {
         Box(
-            modifier = Modifier
-                .fillMaxSize(),
-            // .padding(innerPadding),
+            modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Text("No categories found")
+            // Fix: Use theme content color
+            Text("No categories found", color = MaterialTheme.colorScheme.onBackground)
         }
     } else {
         LazyColumn(
@@ -75,13 +74,12 @@ fun CategoryScreen(navController: NavController, authViewModel: AuthViewModel, c
 
                 val courseCount = courses.count { it.category_id == category.category_id }
 
-                // 🌟 MODIFICATION: Get the resource ID using the category's order field
                 val imageResId = getCategoryImageResId(category.order)
 
                 CategoryCard(
                     name = category.name,
                     courseCount = courseCount,
-                    imageResId = imageResId, // Pass the local resource ID
+                    imageResId = imageResId,
                     onClick = {
                         navController.navigate("course/${category.category_id}")
                     }
@@ -89,35 +87,33 @@ fun CategoryScreen(navController: NavController, authViewModel: AuthViewModel, c
             }
         }
     }
-
 }
 
 @Composable
 fun CategoryCard(
     name: String,
     courseCount: Int,
-    @DrawableRes imageResId: Int, // <-- Added the resource ID parameter
+    @DrawableRes imageResId: Int,
     onClick: () -> Unit
 ) {
-    // The Card composable acts as a Material Design container for coherent content.
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(10.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(16.dp)
+        // Card uses the default surface color scheme which is theme-aware
     ) {
         Box(modifier = Modifier.height(140.dp)) {
 
-            // 🌟 Dynamic Image Loading using the local resource ID
             Image(
-                painter = painterResource(id = imageResId), // Use the dynamic resource ID
+                painter = painterResource(id = imageResId),
                 contentDescription = "$name thumbnail",
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
 
-            // Gradient overlay
+            // Gradient overlay (kept black for maximum readability over image)
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -125,6 +121,7 @@ fun CategoryCard(
                         Brush.verticalGradient(
                             colors = listOf(
                                 Color.Transparent,
+                                // Maintain strong contrast with 0.7f black alpha
                                 Color.Black.copy(alpha = 0.7f)
                             ),
                             startY = 0.3f
@@ -138,12 +135,12 @@ fun CategoryCard(
                 fontSize = 12.sp,
                 color = Color.White,
                 fontWeight = FontWeight.Medium,
-                // fontFamily = Montserrat, // Uncomment if Montserrat is imported and used
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .padding(10.dp)
+                    // Use a slightly more theme-aware dark transparent color
                     .background(
-                        Color.Black.copy(alpha = 0.3f),
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
                         RoundedCornerShape(8.dp)
                     )
                     .padding(horizontal = 8.dp, vertical = 4.dp)
@@ -154,7 +151,6 @@ fun CategoryCard(
                 text = name,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
-                // fontFamily = Montserrat, // Uncomment if Montserrat is imported and used
                 color = Color.White,
                 modifier = Modifier
                     .align(Alignment.BottomStart)

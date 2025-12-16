@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,7 +33,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.corvit.corvit_lms.R
-import com.corvit.corvit_lms.data.Course
+import com.corvit.corvit_lms.data.Course // Assuming Course data class is defined
 import com.corvit.corvit_lms.ui.theme.Montserrat
 import com.corvit.corvit_lms.viewmodel.CatalogViewModel
 
@@ -42,11 +43,11 @@ fun CoursesScreen(
     catalogViewModel: CatalogViewModel,
     categoryId: String
 ) {
-
+    // Collect courses state
     val allCourses by catalogViewModel.courseslist.collectAsStateWithLifecycle()
 
+    // Filter and sort courses
     val filteredCourses = allCourses.filter { it.category_id == categoryId }
-
     val courses = filteredCourses.sortedBy { it.name }
 
     if (courses.isEmpty()) {
@@ -54,9 +55,14 @@ fun CoursesScreen(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Text("No courses found for this category")
+            // Use theme-aware color
+            Text(
+                text = "No courses found for this category",
+                color = MaterialTheme.colorScheme.onBackground
+            )
         }
     } else {
+        // Fix: Use theme background for LazyColumn's background if needed
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(courses) { course ->
                 CourseCard(course = course)
@@ -75,6 +81,7 @@ fun CourseCardWide(
             .fillMaxWidth()
             .padding(10.dp),
         shape = RoundedCornerShape(16.dp)
+        // Card uses theme-aware surface color by default
     ) {
         Row(
             modifier = Modifier
@@ -101,7 +108,9 @@ fun CourseCardWide(
                     text = name,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    maxLines = 2
+                    maxLines = 2,
+                    // Use theme-aware content color
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(modifier = Modifier.height(6.dp))
@@ -110,7 +119,8 @@ fun CourseCardWide(
                 Text(
                     text = "Intermediate • 2 Months • Hybrid",
                     fontSize = 13.sp,
-                    color = Color.DarkGray
+                    // Use a slightly desaturated theme-aware color
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
             }
 
@@ -119,6 +129,8 @@ fun CourseCardWide(
                 text = if (certification) "Certified" else "✖ No Cert",
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
+                // Use theme-aware content color
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.padding(start = 8.dp)
             )
         }
@@ -129,6 +141,7 @@ fun CourseCardWide(
 fun CourseCard(
     course : Course
 ) {
+    // Card uses theme-aware surface color by default
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -150,7 +163,7 @@ fun CourseCard(
                     contentScale = ContentScale.Crop
                 )
 
-                // Gradient overlay
+                // Gradient overlay remains dark to ensure white text visibility
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -163,7 +176,7 @@ fun CourseCard(
 
                 // Certification badge
                 Text(
-                    text = if (course.certification) "Certified" else "No Certification", // 🌟 ACTUAL DATA
+                    text = if (course.certification) "Certified" else "No Certification",
                     fontSize = 12.sp,
                     fontFamily = Montserrat,
                     fontWeight = FontWeight.Normal,
@@ -171,8 +184,9 @@ fun CourseCard(
                     modifier = Modifier
                         .align(Alignment.TopStart)
                         .padding(8.dp)
+                        // Use a dark, theme-aware transparent color for the background box
                         .background(
-                            Color.Black.copy(alpha = 0.4f),
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
                             RoundedCornerShape(8.dp)
                         )
                         .padding(horizontal = 8.dp, vertical = 4.dp)
@@ -183,10 +197,12 @@ fun CourseCard(
 
             // Course Name
             Text(
-                text = course.name, // 🌟 ACTUAL DATA
+                text = course.name,
                 fontSize = 18.sp,
                 fontFamily = Montserrat,
                 fontWeight = FontWeight.Bold,
+                // Use theme-aware content color
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.padding(horizontal = 12.dp),
                 maxLines = 2
             )
@@ -194,7 +210,6 @@ fun CourseCard(
             Spacer(modifier = Modifier.height(4.dp))
 
             // Info Row: Level • Duration • Batch
-            // 🌟 ACTUAL DATA: Constructs the info string
             val infoText = buildString {
                 append(course.courseLevel ?: "N/A Level")
                 append(" • ")
@@ -207,16 +222,15 @@ fun CourseCard(
                 fontSize = 13.sp,
                 fontFamily = Montserrat,
                 fontWeight = FontWeight.Normal,
-                color = Color.DarkGray,
+                // Use a slightly desaturated theme-aware color
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                 modifier = Modifier.padding(horizontal = 12.dp)
             )
 
             Spacer(modifier = Modifier.height(6.dp))
 
             // Price Row
-            // 🌟 ACTUAL DATA: Displaying the main regular PKR price
             val regularPrice = course.prices?.regular_pkr?.let {
-                // Simple formatting for display (e.g., 18000.0 -> Rs. 18,000)
                 "Fee: Rs. ${String.format("%,.0f", it)}"
             } ?: "Price N/A"
 
@@ -225,7 +239,8 @@ fun CourseCard(
                 fontSize = 15.sp,
                 fontFamily = Montserrat,
                 fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF006400), // Dark green for price
+                // Fix: Use theme-aware green. Use primary container or success color
+                color = Color(0xFF4CAF50), // Using a standard green that looks good on both light/dark surfaces
                 modifier = Modifier.padding(horizontal = 12.dp)
             )
 

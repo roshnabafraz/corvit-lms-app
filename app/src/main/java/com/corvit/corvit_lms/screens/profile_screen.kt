@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -39,60 +40,59 @@ import androidx.navigation.NavController
 import com.corvit.corvit_lms.screens.components.LocalThemeToggleState
 import com.corvit.corvit_lms.ui.theme.Montserrat
 import com.corvit.corvit_lms.viewmodel.AuthViewModel
-import com.corvit.corvit_lms.viewmodel.UserDataState // Import UserDataState
+import com.corvit.corvit_lms.viewmodel.UserDataState
 import com.corvit.corvit_lms.R
+import com.corvit.corvit_lms.ui.theme.CorvitPrimaryRed // Import custom red
+import com.corvit.corvit_lms.ui.theme.CorvitSuccessGreen // Import custom green
 
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
 fun ProfileScreen(
     navController: NavController, authViewModel: AuthViewModel
 ) {
-    // Dark Mode Logic
+    // Dark Mode State
     val themeToggleState = LocalThemeToggleState.current
     val isDarkTheme = themeToggleState.isDarkTheme
     val onDarkModeToggled = themeToggleState.toggleTheme
 
-    // Notifications State
+    // Other states
     var notificationsEnabled by remember { mutableStateOf(true) }
-
-    // 🔥 Firebase User Data Logic
     val userDataState = authViewModel.userDataState.observeAsState()
 
-    // 🔥 Trigger the name fetch when the screen is first composed
     LaunchedEffect(Unit) {
         authViewModel.getUserName()
     }
 
-    // Determine the display name based on the state
     val displayName = when (val state = userDataState.value) {
         is UserDataState.Success -> state.name
         is UserDataState.Loading -> "Loading Name..."
-        is UserDataState.Error -> "###"
+        is UserDataState.Error -> "Error"
         else -> "Guest"
     }
 
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
+            // Fix: Background color handled by the Scaffold wrapping this screen
             .padding(horizontal = 20.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
 
         item {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
+                // Profile Image
                 Image(
                     painter = painterResource(id = R.drawable.profile_picture),
                     contentDescription = "Profile Picture",
-                    contentScale = ContentScale.Crop, // Crop to fill the circular shape
+                    contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .size(100.dp)
                         .clip(CircleShape)
-                        .background(Color.LightGray) // This background will only show if the image itself is transparent
+                        // Fix: Use theme-aware color for avatar background
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                 )
 
                 Spacer(modifier = Modifier.width(16.dp))
@@ -100,23 +100,22 @@ fun ProfileScreen(
                 Column(
                     verticalArrangement = Arrangement.Center
                 ) {
-                    // 🔥 Display the dynamic user name here
                     Text(
                         text = displayName,
                         fontSize = 26.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        // Text color defaults to onBackground/onSurface, but specifying theme is clearer
+                        color = MaterialTheme.colorScheme.onBackground
                     )
 
                     Text(
                         text = "Student",
                         fontSize = 15.sp,
-                        color = Color.Gray
+                        color = Color.Gray // Gray is often fine in both themes
                     )
                 }
             }
         }
-
-        // ... (rest of the screen content remains the same) ...
 
         item {
             SectionTitle("Quick Access")
@@ -132,18 +131,14 @@ fun ProfileScreen(
         item {
             SectionTitle("Settings")
             SectionCard {
-
                 ClickableItem("Edit Profile")
                 DividerItem()
 
                 ToggleItem(
                     title = "Notifications",
                     checked = notificationsEnabled,
-                    onCheckedChange = {
-                        notificationsEnabled = it
-                    }
+                    onCheckedChange = { notificationsEnabled = it }
                 )
-
                 DividerItem()
 
                 ToggleItem(
@@ -151,7 +146,6 @@ fun ProfileScreen(
                     checked = isDarkTheme,
                     onCheckedChange = onDarkModeToggled
                 )
-
                 DividerItem()
 
                 ClickableItem("Help & Support")
@@ -163,7 +157,8 @@ fun ProfileScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(14.dp))
-                    .background(Color(0xFFE53935))
+                    // Logout button color remains primary red
+                    .background(CorvitPrimaryRed)
                     .clickable {
                         authViewModel.logout()
                         navController.navigate("login")
@@ -187,15 +182,17 @@ fun ProfileScreen(
     }
 }
 
+// --- Helper Composables ---
+
 @Composable
-fun ClickableItem(
-    title: String,
-) {
+fun ClickableItem(title: String) {
     Text(
         text = title,
         fontSize = 15.sp,
         fontFamily = Montserrat,
         fontWeight = FontWeight.SemiBold,
+        // Fix: Use theme content color
+        color = MaterialTheme.colorScheme.onSurface,
         modifier = Modifier
             .fillMaxWidth()
             .clickable { }
@@ -221,6 +218,8 @@ fun ToggleItem(
             fontSize = 15.sp,
             fontFamily = Montserrat,
             fontWeight = FontWeight.SemiBold,
+            // Fix: Use theme content color
+            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f)
         )
 
@@ -228,8 +227,9 @@ fun ToggleItem(
             checked = checked,
             onCheckedChange = onCheckedChange,
             colors = SwitchDefaults.colors(
-                checkedThumbColor = Color.White,
-                checkedTrackColor = Color(0xFF4CAF50)
+                // Use theme content color for thumb, primary green for track
+                checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                checkedTrackColor = CorvitSuccessGreen
             )
         )
     }
@@ -242,6 +242,7 @@ fun SectionTitle(title: String) {
         fontSize = 22.sp,
         fontFamily = Montserrat,
         fontWeight = FontWeight.Bold,
+        color = MaterialTheme.colorScheme.onBackground, // Fix: Use theme content color
         modifier = Modifier.padding(bottom = 8.dp)
     )
 }
@@ -252,7 +253,8 @@ fun SectionCard(content: @Composable ColumnScope.() -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
-            .background(Color(0xFFF6F6F6))
+            // Fix: Use theme surface variant for cards (light gray in light theme, darker gray in dark theme)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(vertical = 8.dp)
     ) {
         content()
@@ -266,7 +268,8 @@ fun DividerItem() {
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
             .height(0.8.dp)
-            .background(Color(0xFFDDDDDD))
+            // Fix: Use a light theme-aware color for dividers
+            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
     )
 }
 

@@ -11,12 +11,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -27,6 +27,10 @@ fun CustomBottomBar(navController: NavController) {
 
     val selectedItem = remember { mutableStateOf("home") }
     val iconSize = 35.dp
+    // Use the primary red for the selected icon color
+    val selectedIconColor = MaterialTheme.colorScheme.primary
+    // Use the theme's default content color for unselected icons
+    val unselectedIconColor = MaterialTheme.colorScheme.onSurface
 
     val items = listOf(
         BottomBarItem("home", "Home", R.drawable.home_linear, R.drawable.home_bold),
@@ -39,7 +43,8 @@ fun CustomBottomBar(navController: NavController) {
         modifier = Modifier
             .fillMaxWidth()
             .height(70.dp)
-            .background(Color.White),
+            // Fix: Use theme surface color for background
+            .background(MaterialTheme.colorScheme.surface),
         contentAlignment = Alignment.Center
     ) {
         Row(
@@ -60,7 +65,9 @@ fun CustomBottomBar(navController: NavController) {
                         painter = if (selectedItem.value == item.route) painterResource(id = item.iconBold)
                         else painterResource(id = item.iconLinear),
                         contentDescription = item.route,
-                        modifier = Modifier.size(iconSize)
+                        modifier = Modifier.size(iconSize),
+                        // Fix: Use theme-aware colors for tint
+                        tint = if (selectedItem.value == item.route) selectedIconColor else unselectedIconColor
                     )
                 }
             }
@@ -74,4 +81,3 @@ data class BottomBarItem(
     val iconLinear: Int,
     val iconBold: Int
 )
-

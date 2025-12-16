@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -37,6 +38,7 @@ import com.corvit.corvit_lms.R
 import com.corvit.corvit_lms.ui.theme.Montserrat
 import com.corvit.corvit_lms.viewmodel.AuthState
 import com.corvit.corvit_lms.viewmodel.AuthViewModel
+import com.corvit.corvit_lms.ui.theme.CorvitPrimaryRed // Import custom red
 
 @Composable
 fun SignupScreen(navController: NavController, authViewModel: AuthViewModel) {
@@ -47,6 +49,8 @@ fun SignupScreen(navController: NavController, authViewModel: AuthViewModel) {
 
     val authState = authViewModel.authState.observeAsState()
     val context = LocalContext.current
+    val contentColor = MaterialTheme.colorScheme.onBackground
+    val surfaceColor = MaterialTheme.colorScheme.surfaceVariant
 
     LaunchedEffect(authState.value) {
         when (authState.value) {
@@ -57,15 +61,14 @@ fun SignupScreen(navController: NavController, authViewModel: AuthViewModel) {
                 Toast.makeText(context, (authState.value as AuthState.Error).message, Toast.LENGTH_SHORT).show()
             }
             else -> {
-                // Handle other states if needed
+                // Ignore other states
             }
         }
     }
 
 
     Box(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
 
@@ -82,8 +85,6 @@ fun SignupScreen(navController: NavController, authViewModel: AuthViewModel) {
                     .height(200.dp)
             )
 
-            //Spacer(modifier = Modifier.height(32.dp))
-
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
@@ -91,7 +92,7 @@ fun SignupScreen(navController: NavController, authViewModel: AuthViewModel) {
                     .height(480.dp)
                     .padding(horizontal = 16.dp)
                     .clip(RoundedCornerShape(24.dp))
-                    .background(Color(0xFFe9ecef))
+                    .background(surfaceColor)
             ) {
 
                 Column(
@@ -101,7 +102,7 @@ fun SignupScreen(navController: NavController, authViewModel: AuthViewModel) {
 
                     Text("Sign Up",fontFamily = Montserrat,
                         fontWeight = FontWeight.Bold,
-                        color = Color.Black,
+                        color = contentColor,
                         fontSize = 40.sp)
 
                     Spacer(modifier = Modifier.height(22.dp))
@@ -136,14 +137,15 @@ fun SignupScreen(navController: NavController, authViewModel: AuthViewModel) {
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // LOGIN BUTTON
+                    // SIGN UP BUTTON
                     Button(
                         onClick = {
                             authViewModel.Signup(email, password, name)
                         },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFBB2233),
-                            contentColor = Color(0xFFfbffe5)
+                            containerColor = CorvitPrimaryRed,
+                            // 🔥 FIX: Explicitly set contentColor to White for guaranteed visibility
+                            contentColor = Color.White
                         ),
                         shape = RoundedCornerShape(100.dp),
                         modifier = Modifier
@@ -164,7 +166,7 @@ fun SignupScreen(navController: NavController, authViewModel: AuthViewModel) {
 
                 ) {
                 Text(text = "Already have an account? Login",
-                    color = Color(0xFF001011),
+                    color = contentColor,
                     fontSize = 14.sp,
                     fontFamily = Montserrat,
                     fontWeight = FontWeight.Normal)

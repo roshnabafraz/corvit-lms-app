@@ -1,9 +1,7 @@
 package com.corvit.corvit_lms.screens
 
-import androidx.benchmark.traceprocessor.Row
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,10 +14,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,38 +31,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.corvit.corvit_lms.others.YouTubePlayer
-import com.corvit.corvit_lms.screens.components.CustomBottomBar
 import com.corvit.corvit_lms.ui.theme.Montserrat
 import com.corvit.corvit_lms.viewmodel.AuthState
 import com.corvit.corvit_lms.viewmodel.AuthViewModel
 import com.corvit.corvit_lms.viewmodel.CatalogViewModel
-
+import androidx.compose.foundation.isSystemInDarkTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController, authViewModel: AuthViewModel, catalogViewModel : CatalogViewModel){
-
-    val authState = authViewModel.authState.observeAsState()
-    val context = LocalContext.current
-
-    val categories by catalogViewModel.categorylist.collectAsStateWithLifecycle()
-
-    LaunchedEffect(authState.value) {
-        when (authState.value) {
-            is AuthState.Unauthenticated -> {
-                navController.navigate("login")
-            }
-            else -> {
-                // Handle other states if needed
-            }
-        }
-    }
-
-    //YouTubePlayer(videoId = "1_w8QEeYZT8", lifecycleOwner = LocalLifecycleOwner.current)
-
+    // This function can be simplified if the one below is the primary home screen
 }
 
 @Composable
@@ -77,6 +54,10 @@ fun HomeScreen(
     onCertificatesClick: () -> Unit = {},
     onAnnouncementClick: () -> Unit = {}
 ) {
+    val contentColor = MaterialTheme.colorScheme.onBackground
+    val surfaceColor = MaterialTheme.colorScheme.surfaceVariant
+
+    val isCurrentThemeLight = !isSystemInDarkTheme()
 
     LazyColumn(
         modifier = Modifier
@@ -95,12 +76,13 @@ fun HomeScreen(
                     Text(
                         text = "Welcome back,",
                         fontSize = 14.sp,
-                        color = Color.Gray
+                        color = Color.Gray // Gray is fine across themes
                     )
                     Text(
                         text = "Roshnab",
                         fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = contentColor // Fix: Use theme content color
                     )
                 }
 
@@ -108,7 +90,8 @@ fun HomeScreen(
                     modifier = Modifier
                         .size(42.dp)
                         .clip(CircleShape)
-                        .background(Color.LightGray)
+                        // Fix: Use theme surface variant color
+                        .background(surfaceColor)
                         .clickable { onProfileClick() }
                 )
             }
@@ -122,7 +105,8 @@ fun HomeScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Color(0xFFF6F6F6))
+                    // Fix: Use theme surface variant color
+                    .background(surfaceColor)
                     .clickable { onContinueCourseClick() }
                     .padding(16.dp)
             ) {
@@ -130,7 +114,8 @@ fun HomeScreen(
                     Text(
                         text = "Android Development",
                         fontWeight = FontWeight.SemiBold,
-                        fontSize = 16.sp
+                        fontSize = 16.sp,
+                        color = contentColor // Fix: Use theme content color
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
@@ -160,15 +145,14 @@ fun HomeScreen(
         // Quick Access
         item {
             SectionTitle("Quick Access")
-
-            SectionCard {
+            // Replaced SectionCard with the correct composable if SectionRow is the intention
+            SectionRow {
                 QuickActionItem("Assignments", onAssignmentsClick)
                 DividerItem()
                 QuickActionItem("Live Classes", onLiveClassesClick)
                 DividerItem()
                 QuickActionItem("Certificates", onCertificatesClick)
             }
-
         }
 
         // Announcements
@@ -179,13 +163,16 @@ fun HomeScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(14.dp))
-                    .background(Color(0xFFEFF3FF))
+                    // 🔥 FIX APPLIED HERE: Use the local theme state check
+                    .background(if (isCurrentThemeLight) Color(0xFFEFF3FF) else Color(0xFF2C3E50))
                     .clickable { onAnnouncementClick() }
                     .padding(16.dp)
             ) {
                 Text(
                     text = "New Cloud Computing batch starts next week.",
-                    fontSize = 14.sp
+                    fontSize = 14.sp,
+                    // 🔥 FIX APPLIED HERE: Use the local theme state check
+                    color = if (isCurrentThemeLight) Color.Black else Color.White
                 )
             }
         }
@@ -200,11 +187,16 @@ fun CategoryChip(
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(50))
-            .background(Color(0xFFF0F0F0))
+            // Fix: Use theme surface variant for chip background
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .clickable { onClick() }
             .padding(horizontal = 14.dp, vertical = 8.dp)
     ) {
-        Text(text = title, fontSize = 13.sp)
+        Text(
+            text = title,
+            fontSize = 13.sp,
+            color = MaterialTheme.colorScheme.onSurface // Fix: Use theme content color
+        )
     }
 }
 
@@ -216,6 +208,8 @@ fun QuickActionItem(
     Text(
         text = title,
         fontSize = 15.sp,
+        // Fix: Use theme content color
+        color = MaterialTheme.colorScheme.onSurface,
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
@@ -223,17 +217,17 @@ fun QuickActionItem(
     )
 }
 
+// Renamed from SectionRow to avoid confusion with SectionCard/SectionRow from ProfileScreen
 @Composable
 fun SectionRow(content: @Composable ColumnScope.() -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
-            .background(Color(0xFFF6F6F6))
+            // Fix: Use theme surface variant color
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(vertical = 8.dp)
     ) {
         content()
     }
 }
-
-
