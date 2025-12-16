@@ -4,13 +4,20 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.launch
+import androidx.lifecycle.viewModelScope
 
 class AuthViewModel : ViewModel() {
 
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance() // Initialize Firestore
 
     private val _authState = MutableLiveData<AuthState>()
     val authState: LiveData<AuthState> = _authState
+
+    private val _userDataState = MutableLiveData<UserDataState>(UserDataState.Idle) // New LiveData for user profile data
+    val userDataState: LiveData<UserDataState> = _userDataState
 
     init {
         checkAuthStatus()
@@ -43,10 +50,27 @@ class AuthViewModel : ViewModel() {
             }
     }
 
-    fun Signup(email: String, password: String) {
+    // New private function to save user data to Firestore
+    private fun saveUserName(userId: String, name: String) {
+        val user = hashMapOf(
+            "name" to name,
+            "email" to auth.currentUser?.email
+        )
 
-        if (email.isEmpty() || password.isEmpty()) {
-            _authState.value = AuthState.Error("Email & Password cannot be empty")
+        firestore.collection("users").document(userId)
+            .set(user)
+            .addOnFailureListener { e ->
+                // Log or report this error, but don't change AuthState as sign up was successful
+                // You could choose to put this into the AuthState.Error for the screen to show
+                // _authState.value = AuthState.Error("Signup successful but failed to save profile data: ${e.message}")
+            }
+    }
+
+    // Modified Signup function to accept and save the name
+    fun Signup(email: String, password: String, name: String) {
+
+        if (email.isEmpty() || password.isEmpty() || name.isEmpty()) {
+            _authState.value = AuthState.Error("All fields are required")
             return
         }
 
@@ -55,7 +79,13 @@ class AuthViewModel : ViewModel() {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    _authState.value = AuthState.Authenticated
+                    val userId = auth.currentUser?.uid
+                    if (userId != null) {
+                        saveUserName(userId, name) // Save the name to Firestore
+                        _authState.value = AuthState.Authenticated
+                    } else {
+                        _authState.value = AuthState.Error("Sign-up failed: User ID is null.")
+                    }
                 } else {
                     _authState.value = AuthState.Error(task.exception?.message ?: "Something Went Wrong")
                 }
@@ -66,6 +96,33 @@ class AuthViewModel : ViewModel() {
         auth.signOut()
         _authState.value = AuthState.Unauthenticated
     }
+
+    // New function to retrieve the user's name from Firestore
+    fun getUserName() {
+        val userId = auth.currentUser?.uid
+        if (userId == null) {
+            _userDataState.value = UserDataState.Error("User not logged in.")
+            return
+        }
+
+        _userDataState.value = UserDataState.Loading
+        firestore.collection("users").document(userId).get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val name = document.getString("name")
+                    if (name != null) {
+                        _userDataState.value = UserDataState.Success(name)
+                    } else {
+                        _userDataState.value = UserDataState.Error("User name field is missing in profile.")
+                    }
+                } else {
+                    _userDataState.value = UserDataState.Error("User profile document not found.")
+                }
+            }
+            .addOnFailureListener { e ->
+                _userDataState.value = UserDataState.Error("Failed to fetch user data: ${e.message}")
+            }
+    }
 }
 
 sealed class AuthState {
@@ -73,4 +130,12 @@ sealed class AuthState {
     object Unauthenticated : AuthState()
     object Loading : AuthState()
     data class Error(val message: String) : AuthState()
+}
+
+// New sealed class for handling user data retrieval state
+sealed class UserDataState {
+    object Idle : UserDataState()
+    object Loading : UserDataState()
+    data class Success(val name: String) : UserDataState()
+    data class Error(val message: String) : UserDataState()
 }

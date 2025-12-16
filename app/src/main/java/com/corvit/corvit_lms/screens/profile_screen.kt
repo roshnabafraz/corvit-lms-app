@@ -1,5 +1,7 @@
 package com.corvit.corvit_lms.screens
 
+import android.annotation.SuppressLint
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,34 +24,52 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import java.time.format.TextStyle
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.navigation.NavController
+import com.corvit.corvit_lms.screens.components.LocalThemeToggleState
 import com.corvit.corvit_lms.ui.theme.Montserrat
+import com.corvit.corvit_lms.viewmodel.AuthViewModel
+import com.corvit.corvit_lms.viewmodel.UserDataState // Import UserDataState
+import com.corvit.corvit_lms.R
 
-@Preview(showSystemUi = true)
+@SuppressLint("ViewModelConstructorInComposable")
 @Composable
 fun ProfileScreen(
-    onMyCoursesClick: () -> Unit = {},
-    onCertificatesClick: () -> Unit = {},
-    onPaymentsClick: () -> Unit = {},
-    onEditProfileClick: () -> Unit = {},
-    onHelpClick: () -> Unit = {},
-    onLogoutClick: () -> Unit = {},
-    onDarkModeChanged: (Boolean) -> Unit = {},
-    onNotificationsChanged: (Boolean) -> Unit = {}
+    navController: NavController, authViewModel: AuthViewModel
 ) {
+    // Dark Mode Logic
+    val themeToggleState = LocalThemeToggleState.current
+    val isDarkTheme = themeToggleState.isDarkTheme
+    val onDarkModeToggled = themeToggleState.toggleTheme
 
-    var darkModeEnabled by remember { mutableStateOf(false) }
+    // Notifications State
     var notificationsEnabled by remember { mutableStateOf(true) }
+
+    // 🔥 Firebase User Data Logic
+    val userDataState = authViewModel.userDataState.observeAsState()
+
+    // 🔥 Trigger the name fetch when the screen is first composed
+    LaunchedEffect(Unit) {
+        authViewModel.getUserName()
+    }
+
+    // Determine the display name based on the state
+    val displayName = when (val state = userDataState.value) {
+        is UserDataState.Success -> state.name
+        is UserDataState.Loading -> "Loading Name..."
+        is UserDataState.Error -> "###"
+        else -> "Guest"
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -58,31 +78,31 @@ fun ProfileScreen(
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
 
-        // Header - Horizontal Layout
         item {
             Row(
                 modifier = Modifier
                     .fillMaxWidth(),
-                    //.padding(vertical = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
 
-                // Profile Picture
-                Box(
+                Image(
+                    painter = painterResource(id = R.drawable.profile_picture),
+                    contentDescription = "Profile Picture",
+                    contentScale = ContentScale.Crop, // Crop to fill the circular shape
                     modifier = Modifier
                         .size(100.dp)
                         .clip(CircleShape)
-                        .background(Color.LightGray)
+                        .background(Color.LightGray) // This background will only show if the image itself is transparent
                 )
 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                // Name & Role
                 Column(
                     verticalArrangement = Arrangement.Center
                 ) {
+                    // 🔥 Display the dynamic user name here
                     Text(
-                        text = "Roshnab Afraz",
+                        text = displayName,
                         fontSize = 26.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -96,25 +116,24 @@ fun ProfileScreen(
             }
         }
 
+        // ... (rest of the screen content remains the same) ...
 
-        // Quick Access
         item {
             SectionTitle("Quick Access")
             SectionCard {
-                ClickableItem("My Courses", onMyCoursesClick)
+                ClickableItem("My Courses")
                 DividerItem()
-                ClickableItem("Certificates", onCertificatesClick)
+                ClickableItem("Certificates")
                 DividerItem()
-                ClickableItem("Payments", onPaymentsClick)
+                ClickableItem("Payments")
             }
         }
 
-        // Settings
         item {
             SectionTitle("Settings")
             SectionCard {
 
-                ClickableItem("Edit Profile", onEditProfileClick)
+                ClickableItem("Edit Profile")
                 DividerItem()
 
                 ToggleItem(
@@ -122,7 +141,6 @@ fun ProfileScreen(
                     checked = notificationsEnabled,
                     onCheckedChange = {
                         notificationsEnabled = it
-                        onNotificationsChanged(it)
                     }
                 )
 
@@ -130,27 +148,26 @@ fun ProfileScreen(
 
                 ToggleItem(
                     title = "Dark Mode",
-                    checked = darkModeEnabled,
-                    onCheckedChange = {
-                        darkModeEnabled = it
-                        onDarkModeChanged(it)
-                    }
+                    checked = isDarkTheme,
+                    onCheckedChange = onDarkModeToggled
                 )
 
                 DividerItem()
 
-                ClickableItem("Help & Support", onHelpClick)
+                ClickableItem("Help & Support")
             }
         }
 
-        // Logout
         item {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(14.dp))
                     .background(Color(0xFFE53935))
-                    .clickable { onLogoutClick() }
+                    .clickable {
+                        authViewModel.logout()
+                        navController.navigate("login")
+                    }
                     .padding(vertical = 14.dp),
                 contentAlignment = Alignment.Center
             ) {
@@ -173,7 +190,6 @@ fun ProfileScreen(
 @Composable
 fun ClickableItem(
     title: String,
-    onClick: () -> Unit
 ) {
     Text(
         text = title,
@@ -182,7 +198,7 @@ fun ClickableItem(
         fontWeight = FontWeight.SemiBold,
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
+            .clickable { }
             .padding(horizontal = 16.dp, vertical = 14.dp)
     )
 }
@@ -257,7 +273,7 @@ fun DividerItem() {
 @Composable
 fun AppVersionText(
     version: String,
-    releaseType: String // "Stable" or "Beta"
+    releaseType: String
 ) {
     Text(
         text = "App Version $version ($releaseType)",

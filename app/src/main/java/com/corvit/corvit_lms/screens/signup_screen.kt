@@ -108,7 +108,7 @@ fun SignupScreen(navController: NavController, authViewModel: AuthViewModel) {
 
                     // NAME FIELD
                     LabelledTextField(
-                        label = "Name",
+                        label = "Full Name",
                         value = name,
                         onValueChange = { name = it },
                         placeholder = "Enter your name"
@@ -139,7 +139,7 @@ fun SignupScreen(navController: NavController, authViewModel: AuthViewModel) {
                     // LOGIN BUTTON
                     Button(
                         onClick = {
-                            authViewModel.Signup(email, password)
+                            authViewModel.Signup(email, password, name)
                         },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFFBB2233),
@@ -169,25 +169,6 @@ fun SignupScreen(navController: NavController, authViewModel: AuthViewModel) {
                     fontFamily = Montserrat,
                     fontWeight = FontWeight.Normal)
             }
-
-            //Spacer(modifier = Modifier.height(16.dp))
-
-            //SIGN-UP BUTTON
-//            Button(
-//                onClick = {
-//                    navController.navigate("signup")
-//                },
-//                colors = ButtonDefaults.buttonColors(
-//                    containerColor = Color(0xFF001011),
-//                    contentColor = Color(0xFFfbffe5)
-//                ),
-//                shape = RoundedCornerShape(20.dp),
-//                modifier = Modifier
-//                    .fillMaxWidth(0.9f)
-//                    .height(70.dp)
-//            ) {
-//                Text("Sign Up")
-//            }
         }
     }
 }
