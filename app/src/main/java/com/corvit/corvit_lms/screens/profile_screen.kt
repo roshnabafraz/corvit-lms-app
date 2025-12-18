@@ -3,6 +3,7 @@ package com.corvit.corvit_lms.screens
 import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,36 +15,39 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
-import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavController
+import com.corvit.corvit_lms.R
 import com.corvit.corvit_lms.screens.components.LocalThemeToggleState
+import com.corvit.corvit_lms.ui.theme.CorvitPrimaryRed
+import com.corvit.corvit_lms.ui.theme.CorvitSuccessGreen
 import com.corvit.corvit_lms.ui.theme.Montserrat
 import com.corvit.corvit_lms.viewmodel.AuthViewModel
 import com.corvit.corvit_lms.viewmodel.UserDataState
-import com.corvit.corvit_lms.R
-import com.corvit.corvit_lms.ui.theme.CorvitPrimaryRed // Import custom red
-import com.corvit.corvit_lms.ui.theme.CorvitSuccessGreen // Import custom green
 
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
@@ -55,14 +59,20 @@ fun ProfileScreen(
     val isDarkTheme = themeToggleState.isDarkTheme
     val onDarkModeToggled = themeToggleState.toggleTheme
 
-    // Other states
-    var notificationsEnabled by remember { mutableStateOf(true) }
+    // User Data State
     val userDataState = authViewModel.userDataState.observeAsState()
 
+    // Dialog States
+    var showEditNameDialog by remember { mutableStateOf(false) }
+    var nameToUpdate by remember { mutableStateOf("") }
+    var notificationsEnabled by remember { mutableStateOf(true) }
+
+    // Fetch name on load
     LaunchedEffect(Unit) {
         authViewModel.getUserName()
     }
 
+    // Determine current display name
     val displayName = when (val state = userDataState.value) {
         is UserDataState.Success -> state.name
         is UserDataState.Loading -> "Loading Name..."
@@ -70,10 +80,59 @@ fun ProfileScreen(
         else -> "Guest"
     }
 
+    // --- DIALOG FOR EDITING NAME ---
+    if (showEditNameDialog) {
+        AlertDialog(
+            onDismissRequest = { showEditNameDialog = false },
+            containerColor = MaterialTheme.colorScheme.surface,
+            title = {
+                Text(
+                    text = "Edit Profile",
+                    fontFamily = Montserrat,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column {
+                    Text(
+                        text = "Enter your new name below:",
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    OutlinedTextField(
+                        value = nameToUpdate,
+                        onValueChange = { nameToUpdate = it },
+                        label = { Text("Full Name") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (nameToUpdate.isNotBlank()) {
+                            authViewModel.updateUserName(nameToUpdate)
+                            showEditNameDialog = false
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = CorvitPrimaryRed)
+                ) {
+                    Text("Save", color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEditNameDialog = false }) {
+                    Text("Cancel", color = MaterialTheme.colorScheme.onSurface)
+                }
+            }
+        )
+    }
+
+    // --- MAIN UI ---
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            // Fix: Background color handled by the Scaffold wrapping this screen
             .padding(horizontal = 20.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
@@ -83,7 +142,6 @@ fun ProfileScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Profile Image
                 Image(
                     painter = painterResource(id = R.drawable.profile_picture),
                     contentDescription = "Profile Picture",
@@ -91,7 +149,6 @@ fun ProfileScreen(
                     modifier = Modifier
                         .size(100.dp)
                         .clip(CircleShape)
-                        // Fix: Use theme-aware color for avatar background
                         .background(MaterialTheme.colorScheme.surfaceVariant)
                 )
 
@@ -104,14 +161,13 @@ fun ProfileScreen(
                         text = displayName,
                         fontSize = 26.sp,
                         fontWeight = FontWeight.Bold,
-                        // Text color defaults to onBackground/onSurface, but specifying theme is clearer
                         color = MaterialTheme.colorScheme.onBackground
                     )
 
                     Text(
                         text = "Student",
                         fontSize = 15.sp,
-                        color = Color.Gray // Gray is often fine in both themes
+                        color = Color.Gray
                     )
                 }
             }
@@ -131,7 +187,12 @@ fun ProfileScreen(
         item {
             SectionTitle("Settings")
             SectionCard {
-                ClickableItem("Edit Profile")
+                // Modified to trigger Dialog
+                ClickableItem("Edit Profile") {
+                    nameToUpdate = if(displayName != "Loading Name..." && displayName != "Guest") displayName else ""
+                    showEditNameDialog = true
+                }
+
                 DividerItem()
 
                 ToggleItem(
@@ -157,7 +218,6 @@ fun ProfileScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(14.dp))
-                    // Logout button color remains primary red
                     .background(CorvitPrimaryRed)
                     .clickable {
                         authViewModel.logout()
@@ -174,28 +234,24 @@ fun ProfileScreen(
                 )
             }
 
-            AppVersionText(
-                version = "1.0.0",
-                releaseType = "Stable"
-            )
+            AppVersionText("1.0.0", "Stable")
         }
     }
 }
 
-// --- Helper Composables ---
+// --- Helper Composables (Updated) ---
 
 @Composable
-fun ClickableItem(title: String) {
+fun ClickableItem(title: String, onClick: () -> Unit = {}) {
     Text(
         text = title,
         fontSize = 15.sp,
         fontFamily = Montserrat,
         fontWeight = FontWeight.SemiBold,
-        // Fix: Use theme content color
         color = MaterialTheme.colorScheme.onSurface,
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { }
+            .clickable { onClick() } // Updated to use the lambda
             .padding(horizontal = 16.dp, vertical = 14.dp)
     )
 }
@@ -218,7 +274,6 @@ fun ToggleItem(
             fontSize = 15.sp,
             fontFamily = Montserrat,
             fontWeight = FontWeight.SemiBold,
-            // Fix: Use theme content color
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f)
         )
@@ -227,7 +282,6 @@ fun ToggleItem(
             checked = checked,
             onCheckedChange = onCheckedChange,
             colors = SwitchDefaults.colors(
-                // Use theme content color for thumb, primary green for track
                 checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
                 checkedTrackColor = CorvitSuccessGreen
             )
@@ -242,7 +296,7 @@ fun SectionTitle(title: String) {
         fontSize = 22.sp,
         fontFamily = Montserrat,
         fontWeight = FontWeight.Bold,
-        color = MaterialTheme.colorScheme.onBackground, // Fix: Use theme content color
+        color = MaterialTheme.colorScheme.onBackground,
         modifier = Modifier.padding(bottom = 8.dp)
     )
 }
@@ -253,7 +307,6 @@ fun SectionCard(content: @Composable ColumnScope.() -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
-            // Fix: Use theme surface variant for cards (light gray in light theme, darker gray in dark theme)
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(vertical = 8.dp)
     ) {
@@ -268,16 +321,12 @@ fun DividerItem() {
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
             .height(0.8.dp)
-            // Fix: Use a light theme-aware color for dividers
             .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
     )
 }
 
 @Composable
-fun AppVersionText(
-    version: String,
-    releaseType: String
-) {
+fun AppVersionText(version: String, releaseType: String) {
     Text(
         text = "App Version $version ($releaseType)",
         fontSize = 14.sp,
