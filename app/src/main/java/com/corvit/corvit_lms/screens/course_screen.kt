@@ -2,6 +2,7 @@ package com.corvit.corvit_lms.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,6 +21,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,7 +37,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.corvit.corvit_lms.R
-import com.corvit.corvit_lms.data.Course // Assuming Course data class is defined
+import com.corvit.corvit_lms.data.Course
+import com.corvit.corvit_lms.data.CourseFilter
 import com.corvit.corvit_lms.ui.theme.Montserrat
 import com.corvit.corvit_lms.viewmodel.CatalogViewModel
 
@@ -43,95 +48,104 @@ fun CoursesScreen(
     catalogViewModel: CatalogViewModel,
     categoryId: String
 ) {
-    // Collect courses state
     val allCourses by catalogViewModel.courseslist.collectAsStateWithLifecycle()
+    var selectedFilter by remember { mutableStateOf(CourseFilter.ALL) }
 
-    // Filter and sort courses
-    val filteredCourses = allCourses.filter { it.category_id == categoryId }
-    val courses = filteredCourses.sortedBy { it.name }
+    val categoryCourses = allCourses.filter {
+        it.category_id == categoryId
+    }
 
-    if (courses.isEmpty()) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            // Use theme-aware color
-            Text(
-                text = "No courses found for this category",
-                color = MaterialTheme.colorScheme.onBackground
-            )
-        }
-    } else {
-        // Fix: Use theme background for LazyColumn's background if needed
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
-            items(courses) { course ->
-                CourseCard(course = course)
+    // 🔹 Logic updated: Level filters removed
+    val filteredCourses = when (selectedFilter) {
+        CourseFilter.ALL -> categoryCourses
+
+        CourseFilter.FREE ->
+            categoryCourses.filter { it.prices?.regular_pkr == 0.0 }
+
+        CourseFilter.CERTIFIED ->
+            categoryCourses.filter { it.certification }
+
+        CourseFilter.PRICE_LOW_HIGH ->
+            categoryCourses.sortedBy { it.prices?.regular_pkr ?: Double.MAX_VALUE }
+
+        CourseFilter.PRICE_HIGH_LOW ->
+            categoryCourses.sortedByDescending { it.prices?.regular_pkr ?: 0.0 }
+
+        else -> categoryCourses // Handles any unused filter states safely
+    }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+
+        // 🔹 Filter Row
+        CourseFilterRow(
+            selectedFilter = selectedFilter,
+            onFilterSelected = { selectedFilter = it }
+        )
+
+        if (filteredCourses.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "No courses found",
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                items(filteredCourses) { course ->
+                    CourseCard(course = course)
+                }
             }
         }
     }
 }
 
 @Composable
-fun CourseCardWide(
-    name: String,
-    certification: Boolean
+fun CourseFilterRow(
+    selectedFilter: CourseFilter,
+    onFilterSelected: (CourseFilter) -> Unit
 ) {
-    Card(
+
+    // 🔹 Removed Beginner, Intermediate, and Expert from this list
+    val filters = listOf(
+        CourseFilter.ALL to "All",
+        CourseFilter.CERTIFIED to "Certified",
+        CourseFilter.PRICE_LOW_HIGH to "Price: Low → High",
+        CourseFilter.PRICE_HIGH_LOW to "Price: High → Low"
+    )
+
+    androidx.compose.foundation.lazy.LazyRow(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(10.dp),
-        shape = RoundedCornerShape(16.dp)
-        // Card uses theme-aware surface color by default
+            .padding(vertical = 8.dp),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp),
+        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp)
-        ) {
+        items(filters) { (filter, label) ->
+            val isSelected = filter == selectedFilter
 
-            // Thumbnail
-            Image(
-                painter = painterResource(id = R.drawable.demo),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(RoundedCornerShape(12.dp)),
-                contentScale = ContentScale.Crop
-            )
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-
-                // Course Title
-                Text(
-                    text = name,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 2,
-                    // Use theme-aware content color
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-
-                Spacer(modifier = Modifier.height(6.dp))
-
-                // Level - Duration - Batch
-                Text(
-                    text = "Intermediate • 2 Months • Hybrid",
-                    fontSize = 13.sp,
-                    // Use a slightly desaturated theme-aware color
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                )
-            }
-
-            // Certification Badge
             Text(
-                text = if (certification) "Certified" else "✖ No Cert",
-                fontSize = 12.sp,
+                text = label,
+                fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
-                // Use theme-aware content color
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(start = 8.dp)
+                color = if (isSelected)
+                    MaterialTheme.colorScheme.onPrimary
+                else
+                    MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(
+                        if (isSelected)
+                            MaterialTheme.colorScheme.primary
+                        else
+                            MaterialTheme.colorScheme.surfaceVariant
+                    )
+                    .clickable { onFilterSelected(filter) }
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
             )
         }
     }
@@ -141,7 +155,6 @@ fun CourseCardWide(
 fun CourseCard(
     course : Course
 ) {
-    // Card uses theme-aware surface color by default
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -163,7 +176,6 @@ fun CourseCard(
                     contentScale = ContentScale.Crop
                 )
 
-                // Gradient overlay remains dark to ensure white text visibility
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -174,7 +186,6 @@ fun CourseCard(
                         )
                 )
 
-                // Certification badge
                 Text(
                     text = if (course.certification) "Certified" else "No Certification",
                     fontSize = 12.sp,
@@ -184,7 +195,6 @@ fun CourseCard(
                     modifier = Modifier
                         .align(Alignment.TopStart)
                         .padding(8.dp)
-                        // Use a dark, theme-aware transparent color for the background box
                         .background(
                             MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
                             RoundedCornerShape(8.dp)
@@ -195,13 +205,11 @@ fun CourseCard(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Course Name
             Text(
                 text = course.name,
                 fontSize = 18.sp,
                 fontFamily = Montserrat,
                 fontWeight = FontWeight.Bold,
-                // Use theme-aware content color
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.padding(horizontal = 12.dp),
                 maxLines = 2
@@ -222,14 +230,12 @@ fun CourseCard(
                 fontSize = 13.sp,
                 fontFamily = Montserrat,
                 fontWeight = FontWeight.Normal,
-                // Use a slightly desaturated theme-aware color
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                 modifier = Modifier.padding(horizontal = 12.dp)
             )
 
             Spacer(modifier = Modifier.height(6.dp))
 
-            // Price Row
             val regularPrice = course.prices?.regular_pkr?.let {
                 "Fee: Rs. ${String.format("%,.0f", it)}"
             } ?: "Price N/A"
@@ -239,8 +245,7 @@ fun CourseCard(
                 fontSize = 15.sp,
                 fontFamily = Montserrat,
                 fontWeight = FontWeight.SemiBold,
-                // Fix: Use theme-aware green. Use primary container or success color
-                color = Color(0xFF4CAF50), // Using a standard green that looks good on both light/dark surfaces
+                color = Color(0xFF4CAF50),
                 modifier = Modifier.padding(horizontal = 12.dp)
             )
 

@@ -20,3 +20,15 @@ data class PriceDetails(
     val group_usd: Double? = null,
     val one_to_one_usd: Double? = null
 )
+
+enum class CourseFilter {
+    ALL,
+    PRICE_LOW_HIGH,
+    PRICE_HIGH_LOW,
+    FREE,
+    CERTIFIED,
+    BEGINNER,
+    INTERMEDIATE,
+    ADVANCED
+}
+
