@@ -4,7 +4,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
 
 class AuthViewModel : ViewModel() {
@@ -20,55 +19,6 @@ class AuthViewModel : ViewModel() {
 
     init {
         checkAuthStatus()
-    }
-    fun signInWithGoogle(
-        idToken: String,
-        onSuccess: () -> Unit,
-        onError: (String) -> Unit
-    ) {
-        _authState.value = AuthState.Loading
-
-        val credential = GoogleAuthProvider.getCredential(idToken, null)
-
-        auth.signInWithCredential(credential)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    val user = auth.currentUser
-                    val uid = user?.uid
-
-                    if (uid != null) {
-                        // ✅ Firestore me doc ensure (name/email)
-                        val name = user.displayName ?: "User"
-                        val email = user.email ?: ""
-
-                        val data = hashMapOf(
-                            "name" to name,
-                            "email" to email
-                        )
-
-                        firestore.collection("users").document(uid)
-                            .set(data, com.google.firebase.firestore.SetOptions.merge())
-                            .addOnSuccessListener {
-                                _authState.value = AuthState.Authenticated
-                                onSuccess()
-                            }
-                            .addOnFailureListener { e ->
-                                // Auth done, but Firestore failed (still allow login)
-                                _authState.value = AuthState.Authenticated
-                                onSuccess()
-                            }
-
-                    } else {
-                        _authState.value = AuthState.Error("Google sign-in failed: UID is null")
-                        onError("Google sign-in failed: UID is null")
-                    }
-
-                } else {
-                    val msg = task.exception?.message ?: "Google Sign-In Failed"
-                    _authState.value = AuthState.Error(msg)
-                    onError(msg)
-                }
-            }
     }
 
     fun checkAuthStatus() {
