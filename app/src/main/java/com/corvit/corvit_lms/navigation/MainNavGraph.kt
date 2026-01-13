@@ -1,5 +1,8 @@
 package com.corvit.corvit_lms.navigation
 
+import androidx.navigation.NavType
+import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -21,7 +24,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState // Import this
 import androidx.navigation.compose.rememberNavController
 import com.corvit.corvit_lms.screens.CategoryScreen
+import com.corvit.corvit_lms.screens.CourseDetailScreen
 import com.corvit.corvit_lms.screens.CoursesScreen
+import com.corvit.corvit_lms.screens.Enroll_Screen
 import com.corvit.corvit_lms.screens.HomeScreen
 import com.corvit.corvit_lms.screens.LoginScreen
 import com.corvit.corvit_lms.screens.NotificationScreen
@@ -46,7 +51,8 @@ fun MainNavGraph(authViewModel: AuthViewModel, catalogViewModel: CatalogViewMode
     val currentRoute = navBackStackEntry?.destination?.route
 
     // 2. Define which screens should NOT show the bars
-    val noBarScreens = listOf("splash", "login", "signup")
+    val noBarScreens = listOf("splash", "login", "signup", "course_detail/{courseId}")
+
     val showBars = currentRoute !in noBarScreens
 
     // 3. Theme State
@@ -120,6 +126,10 @@ fun MainNavGraph(authViewModel: AuthViewModel, catalogViewModel: CatalogViewMode
                         val categoryId = backStackEntry.arguments?.getString("categoryId") ?: ""
                         CoursesScreen(navController, catalogViewModel, categoryId)
                     }
+                    composable("course_detail/{courseId}") { backStackEntry ->
+                        val courseId = backStackEntry.arguments?.getString("courseId") ?: ""
+                        CourseDetailScreen(navController, catalogViewModel, courseId)
+                    }
 
                     composable("categories") {
                         CategoryScreen(navController, authViewModel, catalogViewModel)
@@ -132,6 +142,14 @@ fun MainNavGraph(authViewModel: AuthViewModel, catalogViewModel: CatalogViewMode
                     composable("profile") {
                         ProfileScreen(navController, authViewModel)
                     }
+                    composable(
+                        route = "enroll_demo/{courseId}",
+                        arguments = listOf(navArgument("courseId") { type = NavType.StringType })
+                    ) { backStackEntry ->
+                        val id = backStackEntry.arguments?.getString("courseId") ?: ""
+                        Enroll_Screen(navController = navController, courseId = id)
+                    }
+
                 }
             }
         }

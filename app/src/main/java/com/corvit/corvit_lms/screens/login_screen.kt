@@ -239,10 +239,7 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
                     // ✅ GOOGLE SIGN-IN BUTTON
                     OutlinedButton(
                         onClick = {
-                            // account picker hamesha show ho:
-                            googleClient.signOut().addOnCompleteListener {
-                                googleLauncher.launch(googleClient.signInIntent)
-                            }
+                            googleLauncher.launch(googleClient.signInIntent)
                         },
                         shape = RoundedCornerShape(100.dp),
                         modifier = Modifier

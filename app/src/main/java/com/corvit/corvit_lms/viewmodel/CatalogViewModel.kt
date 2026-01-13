@@ -46,13 +46,12 @@ class CatalogViewModel : ViewModel(){
             }
 
             if (snapshot != null) {
-                _courseslist.value = snapshot.toObjects(Course::class.java)
+                _courseslist.value = snapshot.documents.mapNotNull { doc ->
+                    doc.toObject(Course::class.java)?.copy(id = doc.id)  // doc id save
+                }
             }
         }
-
-
     }
-
 }
 
 

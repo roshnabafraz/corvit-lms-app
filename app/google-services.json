@@ -1,41 +1,71 @@
 {
   "project_info": {
-    "project_number": "144612960488",
-    "project_id": "corvit-lms",
-    "storage_bucket": "corvit-lms.firebasestorage.app"
+    "project_number": "738353820122",
+    "firebase_url": "https://corvit-lms-app-default-rtdb.firebaseio.com",
+    "project_id": "corvit-lms-app",
+    "storage_bucket": "corvit-lms-app.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:144612960488:android:edf616a9afc4a06002815d",
+        "mobilesdk_app_id": "1:738353820122:android:43dcf3ab4de4478710d0e3",
         "android_client_info": {
           "package_name": "com.corvit.corvit_lms"
         }
       },
       "oauth_client": [
         {
-          "client_id": "144612960488-s2mqpqecqcguuuvf9bkms9hrpdul37tm.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.corvit.corvit_lms",
-            "certificate_hash": "4db817e3bb36b9dadeb529d37c2c2c99095dc0ca"
-          }
-        },
-        {
-          "client_id": "144612960488-1ndkbk00hhvucq5g4jjo85l8b3evh7bq.apps.googleusercontent.com",
+          "client_id": "738353820122-qqfpe1f80rsbk62nkc19bi140m9152cr.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyBJQ2DgeUjn3Nj2kotcIVGdt7aAAqa9H2s"
+          "current_key": "AIzaSyCQO4s3uBf89-j-eY0HeJeNfXIf1qtRpnw"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "144612960488-1ndkbk00hhvucq5g4jjo85l8b3evh7bq.apps.googleusercontent.com",
+              "client_id": "738353820122-qqfpe1f80rsbk62nkc19bi140m9152cr.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:738353820122:android:f1636914f59ed46a10d0e3",
+        "android_client_info": {
+          "package_name": "com.corvit.corvit_lms_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "738353820122-9ditdu6e689qa2mvdq6orhennd2fa571.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.corvit.corvit_lms_app",
+            "certificate_hash": "4db817e3bb36b9dadeb529d37c2c2c99095dc0ca"
+          }
+        },
+        {
+          "client_id": "738353820122-qqfpe1f80rsbk62nkc19bi140m9152cr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCQO4s3uBf89-j-eY0HeJeNfXIf1qtRpnw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "738353820122-qqfpe1f80rsbk62nkc19bi140m9152cr.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

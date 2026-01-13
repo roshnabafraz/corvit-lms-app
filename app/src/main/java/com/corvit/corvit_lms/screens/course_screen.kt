@@ -1,5 +1,6 @@
 package com.corvit.corvit_lms.screens
-
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -41,6 +42,7 @@ import com.corvit.corvit_lms.data.Course
 import com.corvit.corvit_lms.data.CourseFilter
 import com.corvit.corvit_lms.ui.theme.Montserrat
 import com.corvit.corvit_lms.viewmodel.CatalogViewModel
+import androidx.compose.foundation.lazy.items
 
 @Composable
 fun CoursesScreen(
@@ -51,59 +53,101 @@ fun CoursesScreen(
     val allCourses by catalogViewModel.courseslist.collectAsStateWithLifecycle()
     var selectedFilter by remember { mutableStateOf(CourseFilter.ALL) }
 
-    val categoryCourses = allCourses.filter {
-        it.category_id == categoryId
-    }
+    //  NEW: Search state
+    var searchText by remember { mutableStateOf("") }      // user typing
+    var appliedQuery by remember { mutableStateOf("") }    // search apply on click
 
-    // 🔹 Logic updated: Level filters removed
+    val categoryCourses = allCourses.filter { it.category_id == categoryId }
+
     val filteredCourses = when (selectedFilter) {
         CourseFilter.ALL -> categoryCourses
-
-        CourseFilter.FREE ->
-            categoryCourses.filter { it.prices?.regular_pkr == 0.0 }
-
-        CourseFilter.CERTIFIED ->
-            categoryCourses.filter { it.certification }
-
-        CourseFilter.PRICE_LOW_HIGH ->
-            categoryCourses.sortedBy { it.prices?.regular_pkr ?: Double.MAX_VALUE }
-
-        CourseFilter.PRICE_HIGH_LOW ->
-            categoryCourses.sortedByDescending { it.prices?.regular_pkr ?: 0.0 }
-
-        else -> categoryCourses // Handles any unused filter states safely
+        CourseFilter.FREE -> categoryCourses.filter { it.prices?.regular_pkr == 0.0 }
+        CourseFilter.CERTIFIED -> categoryCourses.filter { it.certification }
+        CourseFilter.PRICE_LOW_HIGH -> categoryCourses.sortedBy { it.prices?.regular_pkr ?: Double.MAX_VALUE }
+        CourseFilter.PRICE_HIGH_LOW -> categoryCourses.sortedByDescending { it.prices?.regular_pkr ?: 0.0 }
+        else -> categoryCourses
     }
+
+    // NEW: name search (case-insensitive)
+    val finalCourses = remember(filteredCourses, appliedQuery) {
+        val q = appliedQuery.trim()
+        if (q.isEmpty()) filteredCourses
+        else filteredCourses.filter { (it.name ?: "").contains(q, ignoreCase = true) }
+    }
+
 
     Column(modifier = Modifier.fillMaxSize()) {
 
-        // 🔹 Filter Row
+        // NEW: Search bar
+        CourseSearchBar(
+            text = searchText,
+            onTextChange = { searchText = it },
+            onSearchClick = { appliedQuery = searchText } //  search will happen only on click
+        )
+
+        // existing
         CourseFilterRow(
             selectedFilter = selectedFilter,
             onFilterSelected = { selectedFilter = it }
         )
 
-        if (filteredCourses.isEmpty()) {
+        if (finalCourses.isEmpty()) {
+            val msg =if (appliedQuery.trim().isNotEmpty())
+            "“${appliedQuery.trim()}” course is not available"
+            else
+                "No courses found"
+
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "No courses found",
-                    color = MaterialTheme.colorScheme.onBackground
-                )
+                Text(text = msg, color = MaterialTheme.colorScheme.onBackground)
             }
         } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(filteredCourses) { course ->
-                    CourseCard(course = course)
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                items(finalCourses) { course ->
+                    CourseCard(
+                        course = course,
+                        onClick = {
+                            navController.navigate("course_detail/${android.net.Uri.encode(course.id)}")
+                        }
+                    )
                 }
+
             }
         }
     }
 }
-
+@Composable
+private fun CourseSearchBar(
+    text: String,
+    onTextChange: (String) -> Unit,
+    onSearchClick: () -> Unit
+) {
+    OutlinedTextField(
+        value = text,
+        onValueChange = onTextChange,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        singleLine = true,
+        placeholder = { Text("Search course by name...") },
+        shape = RoundedCornerShape(14.dp),
+        trailingIcon = {
+            Text(
+                text = "Search",
+                modifier = Modifier
+                    .clickable { onSearchClick() }
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                fontWeight = FontWeight.SemiBold
+            )
+        },
+        colors = TextFieldDefaults.colors(
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    )
+}
 @Composable
 fun CourseFilterRow(
     selectedFilter: CourseFilter,
@@ -153,15 +197,17 @@ fun CourseFilterRow(
 
 @Composable
 fun CourseCard(
-    course : Course
+    course: Course,
+    onClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(10.dp),
+            .padding(10.dp)
+            .clickable { onClick() },     // clickable
         shape = RoundedCornerShape(16.dp)
     ) {
-
+//UI
         Column {
 
             Box(
