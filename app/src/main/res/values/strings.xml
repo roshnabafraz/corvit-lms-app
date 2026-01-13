@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Corvit LMS</string>
+
+    <!-- Firebase Google Sign-In -->
+    <string name="default_web_client_id">
+        144612960488-1ndkbk00hhvucq5g4jjo85l8b3evh7bq.apps.googleusercontent.com
+    </string>
 </resources>
