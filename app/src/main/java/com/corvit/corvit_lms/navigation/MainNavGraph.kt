@@ -26,8 +26,10 @@ import androidx.navigation.compose.rememberNavController
 import com.corvit.corvit_lms.screens.CategoryScreen
 import com.corvit.corvit_lms.screens.CourseDetailScreen
 import com.corvit.corvit_lms.screens.CoursesScreen
+import com.corvit.corvit_lms.screens.EnrollDoneScreen
 import com.corvit.corvit_lms.screens.Enroll_Screen
 import com.corvit.corvit_lms.screens.HomeScreen
+import com.corvit.corvit_lms.screens.HomeScreen2
 import com.corvit.corvit_lms.screens.LoginScreen
 import com.corvit.corvit_lms.screens.NotificationScreen
 import com.corvit.corvit_lms.screens.ProfileScreen
@@ -51,9 +53,27 @@ fun MainNavGraph(authViewModel: AuthViewModel, catalogViewModel: CatalogViewMode
     val currentRoute = navBackStackEntry?.destination?.route
 
     // 2. Define which screens should NOT show the bars
-    val noBarScreens = listOf("splash", "login", "signup", "course_detail/{courseId}")
+    // Screens where TopBar should NOT show
+    val noTopBarScreens = listOf(
+        "splash",
+        "login",
+        "signup",
+        "home2",
+        "course_detail/{courseId}"
+    )
 
-    val showBars = currentRoute !in noBarScreens
+// Screens where BottomBar should NOT show
+    val noBottomBarScreens = listOf(
+        "splash",
+        "login",
+        "signup",
+        "course_detail/{courseId}"
+        // ✅ Notice: home2 is NOT here, so bottom bar will show on home2
+    )
+
+    val showTopBar = currentRoute !in noTopBarScreens
+    val showBottomBar = currentRoute !in noBottomBarScreens
+
 
     // 3. Theme State
     val isDarkThemeEnabled = rememberSaveable { mutableStateOf(false) }
@@ -71,7 +91,7 @@ fun MainNavGraph(authViewModel: AuthViewModel, catalogViewModel: CatalogViewMode
             Scaffold(
                 topBar = {
                     // Only show TopBar if showBars is true
-                    if (showBars) {
+                    if (showTopBar) {
                         CenterAlignedTopAppBar(title = {
                             Text(
                                 text = "Corvit",
@@ -89,7 +109,7 @@ fun MainNavGraph(authViewModel: AuthViewModel, catalogViewModel: CatalogViewMode
                 },
                 bottomBar = {
                     // Only show BottomBar if showBars is true
-                    if (showBars) {
+                    if (showBottomBar) {
                         CustomBottomBar(navController)
                     }
                 }
@@ -100,10 +120,22 @@ fun MainNavGraph(authViewModel: AuthViewModel, catalogViewModel: CatalogViewMode
                     modifier = Modifier.padding(innerPadding),
                     startDestination = "splash"
                 ) {
+                    composable("enroll/{courseId}") { backStackEntry ->
+                        val courseId = backStackEntry.arguments?.getString("courseId") ?: ""
+                        Enroll_Screen(navController = navController, courseId = courseId)
+                    }
+
+                    composable("enroll_done/{courseId}/{name}/{phone}/{city}") { backStackEntry ->
+                        val courseId = backStackEntry.arguments?.getString("courseId") ?: ""
+                        val name = backStackEntry.arguments?.getString("name") ?: ""
+                        val phone = backStackEntry.arguments?.getString("phone") ?: ""
+                        val city = backStackEntry.arguments?.getString("city") ?: ""
+                        EnrollDoneScreen(navController, courseId, name, phone, city)
+                    }
 
                     composable("splash") {
                         SplashScreen {
-                            navController.navigate("login") {
+                            navController.navigate("home2") {
                                 popUpTo("splash") { inclusive = true }
                             }
                         }
@@ -120,6 +152,9 @@ fun MainNavGraph(authViewModel: AuthViewModel, catalogViewModel: CatalogViewMode
                     composable("home") {
                         // HomeScreen(navController, authViewModel, catalogViewModel)
                         HomeScreen()
+                    }
+                    composable("home2") {
+                        HomeScreen2(navController, authViewModel, catalogViewModel)
                     }
 
                     composable("course/{categoryId}") { backStackEntry ->
