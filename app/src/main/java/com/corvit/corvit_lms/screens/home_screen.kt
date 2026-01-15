@@ -38,14 +38,10 @@ import com.corvit.corvit_lms.viewmodel.AuthState
 import com.corvit.corvit_lms.viewmodel.AuthViewModel
 import com.corvit.corvit_lms.viewmodel.CatalogViewModel
 import androidx.compose.foundation.isSystemInDarkTheme
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun HomeScreen(navController: NavController, authViewModel: AuthViewModel, catalogViewModel : CatalogViewModel){
-    // This function can be simplified if the one below is the primary home screen
-}
 
 @Composable
 fun HomeScreen(
+    navController: NavController, authViewModel: AuthViewModel, catalogViewModel : CatalogViewModel,
     onProfileClick: () -> Unit = {},
     onContinueCourseClick: () -> Unit = {},
     onCategoryClick: (String) -> Unit = {},

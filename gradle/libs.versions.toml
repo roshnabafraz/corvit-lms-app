@@ -18,6 +18,7 @@ roomCompilerProcessingTesting = "2.8.4"
 roomCompilerProcessingTestingVersion = "2.8.4"
 firebaseCrashlyticsBuildtools = "3.0.6"
 runtimeLivedata = "1.9.5"
+playServicesAuth = "21.0.1"
 firebaseFirestore = "26.0.2"
 benchmarkCommon = "1.4.1"
 litertSupportApi = "1.4.1"
@@ -66,6 +67,8 @@ androidx-compose-foundation-layout = { group = "androidx.compose.foundation", na
 androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
 androidx-compose-ui-text = { group = "androidx.compose.ui", name = "ui-text", version.ref = "uiText" }
 androidx-compose-ui-unit = { group = "androidx.compose.ui", name = "ui-unit", version.ref = "uiUnit" }
+google-play-services-auth = { group = "com.google.android.gms", name = "play-services-auth",  version.ref = "playServicesAuth" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

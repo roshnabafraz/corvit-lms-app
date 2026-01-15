@@ -5,20 +5,22 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,7 +43,7 @@ import com.corvit.corvit_lms.data.Course
 import com.corvit.corvit_lms.data.CourseFilter
 import com.corvit.corvit_lms.ui.theme.Montserrat
 import com.corvit.corvit_lms.viewmodel.CatalogViewModel
-
+import com.corvit.corvit_lms.ui.theme.Montserrat
 @Composable
 fun CoursesScreen(
     navController: NavController,
@@ -51,57 +53,134 @@ fun CoursesScreen(
     val allCourses by catalogViewModel.courseslist.collectAsStateWithLifecycle()
     var selectedFilter by remember { mutableStateOf(CourseFilter.ALL) }
 
-    val categoryCourses = allCourses.filter {
-        it.category_id == categoryId
-    }
+    // Search state
+    var searchText by remember { mutableStateOf("") }      // user typing
+    var appliedQuery by remember { mutableStateOf("") }    // search apply on click
 
-    // 🔹 Logic updated: Level filters removed
+    // 1. Filter by Category
+    val categoryCourses = allCourses.filter { it.category_id == categoryId }
+
+    // 2. Filter by Type/Price (Your Logic)
     val filteredCourses = when (selectedFilter) {
         CourseFilter.ALL -> categoryCourses
+        CourseFilter.FREE -> categoryCourses.filter { it.prices?.regular_pkr == 0.0 }
+        CourseFilter.CERTIFIED -> categoryCourses.filter { it.certification }
+        CourseFilter.PRICE_LOW_HIGH -> categoryCourses.sortedBy { it.prices?.regular_pkr ?: Double.MAX_VALUE }
+        CourseFilter.PRICE_HIGH_LOW -> categoryCourses.sortedByDescending { it.prices?.regular_pkr ?: 0.0 }
+        else -> categoryCourses
+    }
 
-        CourseFilter.FREE ->
-            categoryCourses.filter { it.prices?.regular_pkr == 0.0 }
-
-        CourseFilter.CERTIFIED ->
-            categoryCourses.filter { it.certification }
-
-        CourseFilter.PRICE_LOW_HIGH ->
-            categoryCourses.sortedBy { it.prices?.regular_pkr ?: Double.MAX_VALUE }
-
-        CourseFilter.PRICE_HIGH_LOW ->
-            categoryCourses.sortedByDescending { it.prices?.regular_pkr ?: 0.0 }
-
-        else -> categoryCourses // Handles any unused filter states safely
+    // 3. Filter by Name Search (Intern's Logic)
+    val finalCourses = remember(filteredCourses, appliedQuery) {
+        val q = appliedQuery.trim()
+        if (q.isEmpty()) filteredCourses
+        else filteredCourses.filter { it.name.contains(q, ignoreCase = true) }
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
 
-        // 🔹 Filter Row
+        // Search Bar
+        CourseSearchBar(
+            text = searchText,
+            onTextChange = { searchText = it },
+            onSearchClick = { appliedQuery = searchText }
+        )
+
+        // Filter Row
         CourseFilterRow(
             selectedFilter = selectedFilter,
             onFilterSelected = { selectedFilter = it }
         )
 
-        if (filteredCourses.isEmpty()) {
+        // Content
+        if (finalCourses.isEmpty()) {
+            val msg = if (appliedQuery.trim().isNotEmpty())
+                "“${appliedQuery.trim()}” course is not available"
+            else
+                "No courses found"
+
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "No courses found",
-                    color = MaterialTheme.colorScheme.onBackground
-                )
+                Text(text = msg, color = MaterialTheme.colorScheme.onBackground)
             }
         } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(filteredCourses) { course ->
-                    CourseCard(course = course)
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                items(finalCourses) { course ->
+                    CourseCard(
+                        course = course,
+                        onClick = {
+                            navController.navigate("course_detail/${android.net.Uri.encode(course.category_id)}")
+                        }
+                    )
                 }
             }
         }
     }
+}
+
+@Composable
+private fun CourseSearchBar(
+    text: String,
+    onTextChange: (String) -> Unit,
+    onSearchClick: () -> Unit
+) {
+    val corvitRed = Color(0xFFD50000)
+
+    OutlinedTextField(
+        value = text,
+        onValueChange = onTextChange,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        singleLine = true,
+
+        textStyle = androidx.compose.ui.text.TextStyle(
+            fontFamily = Montserrat,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Normal
+        ),
+
+        placeholder = {
+            Text(
+                text = "Search course...",
+                fontFamily = Montserrat,
+                fontSize = 14.sp,
+                color = Color.Gray
+            )
+        },
+
+        shape = RoundedCornerShape(50.dp),
+
+        trailingIcon = {
+            androidx.compose.material3.Button(
+                onClick = onSearchClick,
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    containerColor = corvitRed,
+                    contentColor = Color.White
+                ),
+                shape = RoundedCornerShape(50.dp),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 20.dp),
+                modifier = Modifier
+                    .padding(end = 6.dp)
+                    .height(40.dp)
+            ) {
+                Text(
+                    text = "Search",
+                    fontFamily = Montserrat,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 12.sp
+                )
+            }
+        },
+        colors = TextFieldDefaults.colors(
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+            unfocusedIndicatorColor = Color.Transparent,
+            focusedIndicatorColor = Color.Transparent
+        )
+    )
 }
 
 @Composable
@@ -110,7 +189,8 @@ fun CourseFilterRow(
     onFilterSelected: (CourseFilter) -> Unit
 ) {
 
-    // 🔹 Removed Beginner, Intermediate, and Expert from this list
+    val corvitRed = Color(0xFFBB2233)
+
     val filters = listOf(
         CourseFilter.ALL to "All",
         CourseFilter.CERTIFIED to "Certified",
@@ -118,12 +198,12 @@ fun CourseFilterRow(
         CourseFilter.PRICE_HIGH_LOW to "Price: High → Low"
     )
 
-    androidx.compose.foundation.lazy.LazyRow(
+    LazyRow(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp),
-        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(filters) { (filter, label) ->
             val isSelected = filter == selectedFilter
@@ -132,15 +212,22 @@ fun CourseFilterRow(
                 text = label,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
+
+                // ✅ Apply Montserrat Font
+                fontFamily = Montserrat,
+
+                // ✅ Text color: White if selected (to contrast with red), else Theme color
                 color = if (isSelected)
-                    MaterialTheme.colorScheme.onPrimary
+                    Color.White
                 else
                     MaterialTheme.colorScheme.onSurface,
+
                 modifier = Modifier
                     .clip(RoundedCornerShape(20.dp))
                     .background(
+                        // ✅ Background: Custom Red if selected
                         if (isSelected)
-                            MaterialTheme.colorScheme.primary
+                            corvitRed
                         else
                             MaterialTheme.colorScheme.surfaceVariant
                     )
@@ -153,17 +240,17 @@ fun CourseFilterRow(
 
 @Composable
 fun CourseCard(
-    course : Course
+    course: Course,
+    onClick: () -> Unit // Added onClick callback
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(10.dp),
+            .padding(10.dp)
+            .clickable { onClick() }, // Apply click listener
         shape = RoundedCornerShape(16.dp)
     ) {
-
         Column {
-
             Box(
                 modifier = Modifier
                     .fillMaxWidth()

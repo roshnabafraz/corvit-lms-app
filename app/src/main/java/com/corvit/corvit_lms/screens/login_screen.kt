@@ -67,7 +67,7 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
         ) {
 
             Image(
-                painter = painterResource(id = R.drawable.logo),
+                painter = painterResource(id = R.drawable.corvit_logo),
                 contentDescription = "Corvit Logo",
                 modifier = Modifier
                     .padding(top = 32.dp)
@@ -165,7 +165,6 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
                         onClick = { authViewModel.Login(email, password) },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = CorvitPrimaryRed,
-                            // 🔥 FIX: Explicitly set contentColor to White for guaranteed visibility
                             contentColor = Color.White
                         ),
                         shape = RoundedCornerShape(100.dp),
