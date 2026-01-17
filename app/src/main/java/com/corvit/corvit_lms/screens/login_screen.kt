@@ -12,6 +12,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
@@ -42,6 +43,8 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
     val context = LocalContext.current
     val contentColor = MaterialTheme.colorScheme.onBackground
     val surfaceColor = MaterialTheme.colorScheme.surfaceVariant
+
+
 
     LaunchedEffect(authState.value) {
         when (authState.value) {
@@ -173,6 +176,27 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
                             .height(60.dp)
                     ) {
                         Text("Login", fontFamily = Montserrat, fontWeight = FontWeight.Bold)
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // ✅ GOOGLE SIGN-IN BUTTON
+                    OutlinedButton(
+                        onClick = {
+                        },
+                        shape = RoundedCornerShape(100.dp),
+                        modifier = Modifier
+                            .fillMaxWidth(0.8f)
+                            .height(56.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = contentColor
+                        )
+                    ) {
+                        Text(
+                            "Continue with Google",
+                            fontFamily = Montserrat,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }

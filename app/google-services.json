@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "738353820122",
+    "firebase_url": "https://corvit-lms-app-default-rtdb.firebaseio.com",
     "project_id": "corvit-lms-app",
     "storage_bucket": "corvit-lms-app.firebasestorage.app"
   },
@@ -12,7 +13,20 @@
           "package_name": "com.corvit.corvit_lms"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "738353820122-lcdlepe9kku72sk1m6jhq8ogej1pjfhi.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.corvit.corvit_lms",
+            "certificate_hash": "71ac2aa2981601419f4d53bffbec39df87afcab1"
+          }
+        },
+        {
+          "client_id": "738353820122-qqfpe1f80rsbk62nkc19bi140m9152cr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCQO4s3uBf89-j-eY0HeJeNfXIf1qtRpnw"
@@ -20,7 +34,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "738353820122-qqfpe1f80rsbk62nkc19bi140m9152cr.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
