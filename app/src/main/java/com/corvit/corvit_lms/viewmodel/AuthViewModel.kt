@@ -4,9 +4,12 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
 
 class AuthViewModel : ViewModel() {
+
+    private val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
 
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
@@ -29,6 +32,17 @@ class AuthViewModel : ViewModel() {
         }
     }
 
+    fun signInWithGoogle(idToken: String) {
+        val credential = GoogleAuthProvider.getCredential(idToken, null)
+        firebaseAuth.signInWithCredential(credential).addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                _authState.value = AuthState.Authenticated
+            } else {
+                _authState.value = AuthState.Error(task.exception?.message ?: "Error")
+            }
+        }
+    }
+
     fun Login(email: String, password: String) {
         if (email.isEmpty() || password.isEmpty()) {
             _authState.value = AuthState.Error("Email & Password cannot be empty")
@@ -47,7 +61,6 @@ class AuthViewModel : ViewModel() {
             }
     }
 
-    // Save initial user data to Firestore
     private fun saveUserName(userId: String, name: String) {
         val user = hashMapOf(
             "name" to name,
@@ -57,7 +70,6 @@ class AuthViewModel : ViewModel() {
         firestore.collection("users").document(userId)
             .set(user)
             .addOnFailureListener {
-                // Optional: handle failure silently or log it
             }
     }
 
@@ -90,16 +102,12 @@ class AuthViewModel : ViewModel() {
         _authState.value = AuthState.Unauthenticated
     }
 
-    // --- FIX: This function is now at the class level, not inside another function ---
-    // It updates Firestore because that is where your app reads the name from.
     fun updateUserName(newName: String) {
         val userId = auth.currentUser?.uid
         if (userId != null) {
-            // Update the 'name' field in the 'users' collection
             firestore.collection("users").document(userId)
                 .update("name", newName)
                 .addOnSuccessListener {
-                    // Once updated in DB, refresh the local UI
                     getUserName()
                 }
                 .addOnFailureListener { e ->
@@ -127,7 +135,6 @@ class AuthViewModel : ViewModel() {
                         _userDataState.value = UserDataState.Error("User name field is missing in profile.")
                     }
                 } else {
-                    // Fallback: If no Firestore doc, try getting name from Auth object directly
                     val authName = auth.currentUser?.displayName
                     if (authName != null) {
                         _userDataState.value = UserDataState.Success(authName)

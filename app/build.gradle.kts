@@ -78,7 +78,8 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation(libs.google.play.services.auth)
-
+    implementation("com.google.android.gms:play-services-auth:21.5.0")
+    implementation("com.google.firebase:firebase-auth-ktx:23.0.0")
 
     implementation("androidx.datastore:datastore-preferences:1.2.0")
 

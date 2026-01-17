@@ -8,13 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -26,37 +20,45 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.corvit.corvit_lms.R
-import com.corvit.corvit_lms.viewmodel.AuthViewModel
+import androidx.credentials.CredentialManager
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialException
 import androidx.navigation.NavController
+import com.corvit.corvit_lms.R
 import com.corvit.corvit_lms.ui.theme.Montserrat
+import com.corvit.corvit_lms.ui.theme.CorvitPrimaryRed
 import com.corvit.corvit_lms.viewmodel.AuthState
-import com.corvit.corvit_lms.ui.theme.CorvitPrimaryRed // Import custom red
+import com.corvit.corvit_lms.viewmodel.AuthViewModel
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var isChecked by remember { mutableStateOf(false) }
 
     val authState = authViewModel.authState.observeAsState()
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val credentialManager = CredentialManager.create(context)
+
     val contentColor = MaterialTheme.colorScheme.onBackground
     val surfaceColor = MaterialTheme.colorScheme.surfaceVariant
-
-
 
     LaunchedEffect(authState.value) {
         when (authState.value) {
             is AuthState.Authenticated -> {
-                navController.navigate("home")
+                navController.navigate("home") {
+                    popUpTo("login") { inclusive = true }
+                }
             }
             is AuthState.Error -> {
                 Toast.makeText(context, (authState.value as AuthState.Error).message, Toast.LENGTH_SHORT).show()
             }
-            else -> {
-                // Ignore other states
-            }
+            else -> {}
         }
     }
 
@@ -81,7 +83,7 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(420.dp)
+                    .height(450.dp) // Slightly increased to fit buttons comfortably
                     .padding(horizontal = 16.dp)
                     .clip(RoundedCornerShape(24.dp))
                     .background(surfaceColor)
@@ -92,14 +94,14 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
                     verticalArrangement = Arrangement.Center
                 ) {
 
-                    Text("Login",fontFamily = Montserrat,
+                    Text("Login",
+                        fontFamily = Montserrat,
                         fontWeight = FontWeight.Bold,
                         color = contentColor,
                         fontSize = 40.sp)
 
                     Spacer(modifier = Modifier.height(22.dp))
 
-                    // INPUT FIELDS
                     LabelledTextField(
                         label = "Email",
                         value = email,
@@ -118,14 +120,11 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
 
                     Spacer(modifier = Modifier.height(4.dp))
 
-                    var isChecked by remember { mutableStateOf(false) }
-
                     Row(
                         modifier = Modifier.fillMaxWidth(0.9f),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
                                 painter = painterResource(
@@ -146,11 +145,11 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
                                 fontSize = 14.sp,
                                 fontFamily = Montserrat,
                                 fontWeight = FontWeight.Normal,
-                                modifier = Modifier.clickable{ isChecked = !isChecked }
+                                modifier = Modifier.clickable { isChecked = !isChecked }
                             )
                         }
 
-                        TextButton(onClick = {}) {
+                        TextButton(onClick = { /* Handle Forgot Password */ }) {
                             Text(
                                 text = "Forgot Password?",
                                 color = contentColor,
@@ -173,24 +172,46 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
                         shape = RoundedCornerShape(100.dp),
                         modifier = Modifier
                             .fillMaxWidth(0.8f)
-                            .height(60.dp)
+                            .height(55.dp)
                     ) {
                         Text("Login", fontFamily = Montserrat, fontWeight = FontWeight.Bold)
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // ✅ GOOGLE SIGN-IN BUTTON
                     OutlinedButton(
                         onClick = {
+                            coroutineScope.launch {
+                                val googleIdOption = GetGoogleIdOption.Builder()
+                                    .setFilterByAuthorizedAccounts(false)
+                                    .setServerClientId("738353820122-qqfpe1f80rsbk62nkc19bi140m9152cr.apps.googleusercontent.com")                                    .setAutoSelectEnabled(true)
+                                    .build()
+
+                                val request = GetCredentialRequest.Builder()
+                                    .addCredentialOption(googleIdOption)
+                                    .build()
+
+                                try {
+                                    val result = credentialManager.getCredential(
+                                        context = context,
+                                        request = request
+                                    )
+                                    val credential = result.credential
+                                    if (credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+                                        val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+                                        // Update your ViewModel to handle this token
+                                        authViewModel.signInWithGoogle(googleIdTokenCredential.idToken)
+                                    }
+                                } catch (e: GetCredentialException) {
+                                    Toast.makeText(context, "Google Sign-in failed", Toast.LENGTH_SHORT).show()
+                                }
+                            }
                         },
                         shape = RoundedCornerShape(100.dp),
                         modifier = Modifier
                             .fillMaxWidth(0.8f)
-                            .height(56.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = contentColor
-                        )
+                            .height(55.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = contentColor)
                     ) {
                         Text(
                             "Continue with Google",
@@ -226,7 +247,9 @@ fun LabelledTextField(
     Column(modifier = Modifier.fillMaxWidth(0.9f)) {
 
         Text(
-            text = label,fontFamily = Montserrat, fontWeight = FontWeight.Bold,
+            text = label,
+            fontFamily = Montserrat,
+            fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground,
             fontSize = 14.sp,
             modifier = Modifier.padding(start = 8.dp, bottom = 6.dp)
