@@ -49,7 +49,7 @@ import com.corvit.corvit_lms.viewmodel.CatalogViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainNavGraph(authViewModel: AuthViewModel, catalogViewModel: CatalogViewModel) {
+fun MainNavGraph(authViewModel: AuthViewModel, catalogViewModel: CatalogViewModel, userName: String) {
     val navController = rememberNavController()
 
     // 1. Observe the current back stack entry to get the current route
@@ -162,7 +162,7 @@ fun MainNavGraph(authViewModel: AuthViewModel, catalogViewModel: CatalogViewMode
                     }
 
                     composable("profile") {
-                        ProfileScreen(navController, authViewModel)
+                        ProfileScreen(navController, authViewModel, userName = userName )
                     }
 
                     // --- COURSES & ENROLLMENT ---

@@ -52,7 +52,7 @@ import com.corvit.corvit_lms.viewmodel.UserDataState
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
 fun ProfileScreen(
-    navController: NavController, authViewModel: AuthViewModel
+    navController: NavController, authViewModel: AuthViewModel, userName: String
 ) {
     // Dark Mode State
     val themeToggleState = LocalThemeToggleState.current
@@ -67,20 +67,6 @@ fun ProfileScreen(
     var nameToUpdate by remember { mutableStateOf("") }
     var notificationsEnabled by remember { mutableStateOf(true) }
 
-    // Fetch name on load
-    LaunchedEffect(Unit) {
-        authViewModel.getUserName()
-    }
-
-    // Determine current display name
-    val displayName = when (val state = userDataState.value) {
-        is UserDataState.Success -> state.name
-        is UserDataState.Loading -> "Loading Name..."
-        is UserDataState.Error -> "Error"
-        else -> "Guest"
-    }
-
-    // --- DIALOG FOR EDITING NAME ---
     if (showEditNameDialog) {
         AlertDialog(
             onDismissRequest = { showEditNameDialog = false },
@@ -158,7 +144,7 @@ fun ProfileScreen(
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = displayName,
+                        text = userName,
                         fontSize = 26.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground
@@ -189,7 +175,7 @@ fun ProfileScreen(
             SectionCard {
                 // Modified to trigger Dialog
                 ClickableItem("Edit Profile") {
-                    nameToUpdate = if(displayName != "Loading Name..." && displayName != "Guest") displayName else ""
+                    nameToUpdate = if(userName != "Loading Name..." && userName != "Guest") userName else ""
                     showEditNameDialog = true
                 }
 
