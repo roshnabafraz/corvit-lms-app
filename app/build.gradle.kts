@@ -80,6 +80,7 @@ dependencies {
     implementation(libs.google.play.services.auth)
     implementation("com.google.android.gms:play-services-auth:21.5.0")
     implementation("com.google.firebase:firebase-auth-ktx:23.0.0")
+    implementation("androidx.compose.material:material-icons-extended:1.7.8")
 
     implementation("androidx.datastore:datastore-preferences:1.2.0")
 
