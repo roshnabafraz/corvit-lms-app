@@ -32,12 +32,10 @@ import com.corvit.corvit_lms.viewmodel.CatalogViewModel
 fun CourseDetailScreen(
     navController: NavController,
     catalogViewModel: CatalogViewModel,
-    courseId: String
+    courseName: String
 ) {
-    val allCourses by catalogViewModel.courseslist.collectAsStateWithLifecycle()
-    // Finding course by ID (ensure logic matches your data structure)
-    val course = allCourses.firstOrNull { it.category_id == courseId }
-
+    val allCourses by catalogViewModel.courseslist.collectAsStateWithLifecycle()    // Finding course by ID (ensure logic matches your data structure)
+    val course = allCourses.firstOrNull { it.name == courseName }
     if (course == null) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text("Course not found", fontFamily = Montserrat)

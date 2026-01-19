@@ -103,7 +103,9 @@ fun CoursesScreen(
                         CourseCard(
                             course = course,
                             onClick = {
-                                navController.navigate("course_detail/${android.net.Uri.encode(course.category_id)}")
+                                // 🔥 FIX: Use 'course.name' instead of 'category_id'
+                                // Since you don't have an ID, Name is the only unique way to distinguish them
+                                navController.navigate("course_detail/${android.net.Uri.encode(course.name)}")
                             }
                         )
                     }
@@ -113,6 +115,7 @@ fun CoursesScreen(
     }
 }
 
+// ... (Rest of your Composable functions: CourseSearchBar, CourseFilterRow, CourseCard stay exactly the same)
 @Composable
 private fun CourseSearchBar(
     text: String,
@@ -225,20 +228,17 @@ fun CourseCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column {
-            // Image Box
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(150.dp)
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.demo), // Ensure 'demo' exists in drawable
+                    painter = painterResource(id = R.drawable.demo),
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
-
-                // Gradient Overlay
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -248,8 +248,6 @@ fun CourseCard(
                             )
                         )
                 )
-
-                // Certification Badge
                 if (course.certification) {
                     Text(
                         text = "Certified",
@@ -270,7 +268,6 @@ fun CourseCard(
             }
 
             Column(modifier = Modifier.padding(16.dp)) {
-                // Title
                 Text(
                     text = course.name,
                     fontSize = 18.sp,
@@ -280,10 +277,7 @@ fun CourseCard(
                     maxLines = 2,
                     lineHeight = 22.sp
                 )
-
                 Spacer(modifier = Modifier.height(6.dp))
-
-                // Info Row
                 val infoText = buildString {
                     append(course.courseLevel ?: "N/A")
                     append(" • ")
@@ -297,13 +291,9 @@ fun CourseCard(
                     fontFamily = Montserrat,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
-
                 Spacer(modifier = Modifier.height(10.dp))
-
-                // Price
                 val price = course.prices?.regular_pkr ?: 0.0
                 val priceText = if (price == 0.0) "Free" else "Rs. ${String.format("%,.0f", price)}"
-
                 Text(
                     text = priceText,
                     fontSize = 16.sp,
