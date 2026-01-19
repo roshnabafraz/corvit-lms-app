@@ -90,7 +90,10 @@ fun CourseDetailScreen(
 
                     Button(
                         onClick = {
-                            Toast.makeText(navController.context, "Enrolled in ${course.name}", Toast.LENGTH_SHORT).show()
+
+                            val encodedCourseName = android.net.Uri.encode(course.name)
+
+                            navController.navigate("enrollment/$encodedCourseName")
                         },
                         modifier = Modifier
                             .height(50.dp)

@@ -10,7 +10,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 class AuthViewModel : ViewModel() {
 
     private val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
-
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
 
@@ -36,6 +35,20 @@ class AuthViewModel : ViewModel() {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         firebaseAuth.signInWithCredential(credential).addOnCompleteListener { task ->
             if (task.isSuccessful) {
+                // Check if user exists in Firestore, if not create them
+                val userId = auth.currentUser?.uid
+                val email = auth.currentUser?.email
+                val name = auth.currentUser?.displayName ?: "Google User"
+
+                if (userId != null) {
+                    val userRef = firestore.collection("users").document(userId)
+                    userRef.get().addOnSuccessListener { document ->
+                        if (!document.exists()) {
+                            saveUserName(userId, name)
+                        }
+                    }
+                }
+
                 _authState.value = AuthState.Authenticated
             } else {
                 _authState.value = AuthState.Error(task.exception?.message ?: "Error")
@@ -70,6 +83,7 @@ class AuthViewModel : ViewModel() {
         firestore.collection("users").document(userId)
             .set(user)
             .addOnFailureListener {
+                // Handle failure silently or log it
             }
     }
 
@@ -100,6 +114,7 @@ class AuthViewModel : ViewModel() {
     fun logout() {
         auth.signOut()
         _authState.value = AuthState.Unauthenticated
+        _userDataState.value = UserDataState.Idle
     }
 
     fun updateUserName(newName: String) {
@@ -108,7 +123,7 @@ class AuthViewModel : ViewModel() {
             firestore.collection("users").document(userId)
                 .update("name", newName)
                 .addOnSuccessListener {
-                    getUserName()
+                    getUserData() // Refresh data
                 }
                 .addOnFailureListener { e ->
                     _userDataState.value = UserDataState.Error("Failed to update name: ${e.message}")
@@ -116,9 +131,11 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    fun getUserName() {
+    fun getUserData() {
         val userId = auth.currentUser?.uid
-        if (userId == null) {
+        val currentUser = auth.currentUser
+
+        if (userId == null || currentUser == null) {
             _userDataState.value = UserDataState.Error("User not logged in.")
             return
         }
@@ -128,24 +145,24 @@ class AuthViewModel : ViewModel() {
         firestore.collection("users").document(userId).get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
-                    val name = document.getString("name")
-                    if (name != null) {
-                        _userDataState.value = UserDataState.Success(name)
-                    } else {
-                        _userDataState.value = UserDataState.Error("User name field is missing in profile.")
-                    }
+                    val name = document.getString("name") ?: currentUser.displayName ?: "User"
+                    val email = document.getString("email") ?: currentUser.email ?: ""
+
+                    _userDataState.value = UserDataState.Success(name, email)
                 } else {
-                    val authName = auth.currentUser?.displayName
-                    if (authName != null) {
-                        _userDataState.value = UserDataState.Success(authName)
-                    } else {
-                        _userDataState.value = UserDataState.Error("User profile not found.")
-                    }
+                    // Fallback to Auth data if Firestore doc doesn't exist
+                    val name = currentUser.displayName ?: "User"
+                    val email = currentUser.email ?: ""
+                    _userDataState.value = UserDataState.Success(name, email)
                 }
             }
             .addOnFailureListener { e ->
                 _userDataState.value = UserDataState.Error("Failed to fetch user data: ${e.message}")
             }
+    }
+
+    fun getUserName() {
+        getUserData()
     }
 }
 
@@ -159,6 +176,6 @@ sealed class AuthState {
 sealed class UserDataState {
     object Idle : UserDataState()
     object Loading : UserDataState()
-    data class Success(val name: String) : UserDataState()
+    data class Success(val name: String, val email: String) : UserDataState()
     data class Error(val message: String) : UserDataState()
 }

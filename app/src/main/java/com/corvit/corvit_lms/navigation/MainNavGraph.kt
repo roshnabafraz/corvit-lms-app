@@ -2,15 +2,11 @@ package com.corvit.corvit_lms.navigation
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.height
-import androidx.navigation.NavType
-import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -18,20 +14,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.corvit.corvit_lms.R
 import com.corvit.corvit_lms.screens.CategoryScreen
 import com.corvit.corvit_lms.screens.CourseDetailScreen
 import com.corvit.corvit_lms.screens.CoursesScreen
-import com.corvit.corvit_lms.screens.EnrollDoneScreen
 import com.corvit.corvit_lms.screens.Enroll_Screen
 import com.corvit.corvit_lms.screens.HomeScreen
 import com.corvit.corvit_lms.screens.LoginScreen
@@ -43,7 +37,6 @@ import com.corvit.corvit_lms.screens.components.CustomBottomBar
 import com.corvit.corvit_lms.screens.components.LocalThemeToggleState
 import com.corvit.corvit_lms.screens.components.ThemeToggleState
 import com.corvit.corvit_lms.ui.theme.CorvitLMSTheme
-import com.corvit.corvit_lms.ui.theme.Montserrat
 import com.corvit.corvit_lms.viewmodel.AuthViewModel
 import com.corvit.corvit_lms.viewmodel.CatalogViewModel
 
@@ -52,26 +45,26 @@ import com.corvit.corvit_lms.viewmodel.CatalogViewModel
 fun MainNavGraph(authViewModel: AuthViewModel, catalogViewModel: CatalogViewModel, userName: String) {
     val navController = rememberNavController()
 
-    // 1. Observe the current back stack entry to get the current route
+    // 1. Observe the current back stack entry
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
     // 2. Define Bar Visibility
-
-    // Hide Top Bar on these screens (Includes 'home' as it usually has its own header)
+    // Added enrollment route here so Top/Bottom bars hide when filling the form
     val noTopBarScreens = listOf(
         "splash",
         "login",
         "signup",
-        "course_detail/{courseId}"
+        "course_detail/{courseName}",
+        "enrollment/{courseName}"
     )
 
-    // Hide Bottom Bar on these screens
     val noBottomBarScreens = listOf(
         "splash",
         "login",
         "signup",
-        "course_detail/{courseId}"
+        "course_detail/{courseName}",
+        "enrollment/{courseName}"
     )
 
     val showTopBar = currentRoute !in noTopBarScreens
@@ -94,22 +87,12 @@ fun MainNavGraph(authViewModel: AuthViewModel, catalogViewModel: CatalogViewMode
                 topBar = {
                     if (showTopBar) {
                         CenterAlignedTopAppBar(title = {
-//                            Text(
-//                                text = "Corvit",
-//                                fontSize = 28.sp,
-//                                style = TextStyle(
-//                                    fontFamily = Montserrat,
-//                                    fontWeight = FontWeight.Bold,
-//                                    color = Color(0xFF000000)
-//                                )
-//                            )
                             Image(
-                                // Make sure 'logo' exists in your res/drawable folder
                                 painter = painterResource(id = R.drawable.corvit_logo),
                                 contentDescription = "App Logo",
                                 modifier = Modifier
-                                    .height(40.dp) // Adjust height to fit the bar
-                                    .width(120.dp), // Optional: Limit width if needed
+                                    .height(40.dp)
+                                    .width(120.dp),
                                 contentScale = androidx.compose.ui.layout.ContentScale.Fit
                             )
                         })
@@ -131,7 +114,6 @@ fun MainNavGraph(authViewModel: AuthViewModel, catalogViewModel: CatalogViewMode
                     // --- SPLASH ---
                     composable("splash") {
                         SplashScreen {
-                            // Navigate to Login as requested
                             navController.navigate("login") {
                                 popUpTo("splash") { inclusive = true }
                             }
@@ -149,7 +131,6 @@ fun MainNavGraph(authViewModel: AuthViewModel, catalogViewModel: CatalogViewMode
 
                     // --- MAIN TABS ---
                     composable("home") {
-                        // Original HomeScreen enabled
                         HomeScreen(navController, authViewModel, catalogViewModel)
                     }
 
@@ -162,39 +143,35 @@ fun MainNavGraph(authViewModel: AuthViewModel, catalogViewModel: CatalogViewMode
                     }
 
                     composable("profile") {
-                        ProfileScreen(navController, authViewModel, userName = userName )
+                        ProfileScreen(navController, authViewModel, userName = userName)
                     }
 
-                    // --- COURSES & ENROLLMENT ---
+                    // --- COURSES ---
                     composable("course/{categoryId}") { backStackEntry ->
                         val categoryId = backStackEntry.arguments?.getString("categoryId") ?: ""
                         CoursesScreen(navController, catalogViewModel, categoryId)
                     }
 
-                    composable("course_detail/{courseId}") { backStackEntry ->
-                        val courseId = backStackEntry.arguments?.getString("courseId") ?: ""
-                        CourseDetailScreen(navController, catalogViewModel, courseId)
-                    }
-
-                    composable("enroll/{courseId}") { backStackEntry ->
-                        val courseId = backStackEntry.arguments?.getString("courseId") ?: ""
-                        Enroll_Screen(navController = navController, courseId = courseId)
+                    // ✅ UPDATED: Uses 'courseName'
+                    composable(
+                        route = "course_detail/{courseName}",
+                        arguments = listOf(navArgument("courseName") { type = NavType.StringType })
+                    ) { backStackEntry ->
+                        val courseName = backStackEntry.arguments?.getString("courseName") ?: ""
+                        CourseDetailScreen(navController, catalogViewModel, courseName)
                     }
 
                     composable(
-                        route = "enroll_demo/{courseId}",
-                        arguments = listOf(navArgument("courseId") { type = NavType.StringType })
+                        route = "enrollment/{courseName}",
+                        arguments = listOf(navArgument("courseName") { type = NavType.StringType })
                     ) { backStackEntry ->
-                        val id = backStackEntry.arguments?.getString("courseId") ?: ""
-                        Enroll_Screen(navController = navController, courseId = id)
-                    }
+                        val courseName = backStackEntry.arguments?.getString("courseName") ?: ""
 
-                    composable("enroll_done/{courseId}/{name}/{phone}/{city}") { backStackEntry ->
-                        val courseId = backStackEntry.arguments?.getString("courseId") ?: ""
-                        val name = backStackEntry.arguments?.getString("name") ?: ""
-                        val phone = backStackEntry.arguments?.getString("phone") ?: ""
-                        val city = backStackEntry.arguments?.getString("city") ?: ""
-                        EnrollDoneScreen(navController, courseId, name, phone, city)
+                        Enroll_Screen(
+                            navController = navController,
+                            authViewModel = authViewModel,
+                            courseName = courseName
+                        )
                     }
                 }
             }
