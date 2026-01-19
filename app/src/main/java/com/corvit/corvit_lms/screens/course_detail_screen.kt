@@ -18,7 +18,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -34,8 +33,9 @@ fun CourseDetailScreen(
     catalogViewModel: CatalogViewModel,
     courseName: String
 ) {
-    val allCourses by catalogViewModel.courseslist.collectAsStateWithLifecycle()    // Finding course by ID (ensure logic matches your data structure)
+    val allCourses by catalogViewModel.courseslist.collectAsStateWithLifecycle()
     val course = allCourses.firstOrNull { it.name == courseName }
+
     if (course == null) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text("Course not found", fontFamily = Montserrat)
@@ -43,29 +43,22 @@ fun CourseDetailScreen(
         return
     }
 
-    // --- FIREBASE DATA PLACEHOLDERS ---
+    val regularPrice = course.prices?.discount_pkr ?: 0.0
+    val discountPrice = course.prices?.regular_pkr ?: 0.0
 
-    // 1. IMAGE LINK (Commented out for later)
-    // val courseImageLink = course.image_url // <--- UNCOMMENT THIS LATER
+    val finalPrice = if (discountPrice > 0 && discountPrice < regularPrice) discountPrice else regularPrice
 
-    // 2. DESCRIPTION (Commented out logic for later)
-    // val description = course.description ?: "No description available." // <--- UNCOMMENT THIS LATER
-
-    // Hardcoded for now:
     val description = remember {
         """
         ${course.name} is designed to help you build strong, practical skills with a clear learning path. You’ll learn core concepts with real-world examples and industry-style practices.
 
         This course includes structured learning modules, guided practice, and key takeaways that help you apply knowledge in projects and assessments. You’ll also get a clear understanding of best practices used by professionals.
-
-        By the end, you’ll be able to confidently explain the main topics and implement them in real scenarios. This course is ideal if you want to grow your skills and build a solid portfolio.
         """.trimIndent()
     }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
-            // Sticky Bottom Bar with Price and Enroll Button
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shadowElevation = 16.dp,
@@ -81,14 +74,13 @@ fun CourseDetailScreen(
                 ) {
                     Column {
                         Text(
-                            text = "Total Price",
+                            text = if (discountPrice > 0 && discountPrice < regularPrice) "Discounted Price" else "Total Price",
                             fontFamily = Montserrat,
                             fontSize = 12.sp,
                             color = Color.Gray
                         )
-                        val price = course.prices?.regular_pkr ?: 0.0
                         Text(
-                            text = if (price == 0.0) "Free" else "Rs. ${String.format("%,.0f", price)}",
+                            text = if (finalPrice == 0.0) "Free" else "Rs. ${String.format("%,.0f", finalPrice)}",
                             fontFamily = Montserrat,
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp,
@@ -99,7 +91,6 @@ fun CourseDetailScreen(
                     Button(
                         onClick = {
                             Toast.makeText(navController.context, "Enrolled in ${course.name}", Toast.LENGTH_SHORT).show()
-                            // navController.navigate("enroll_demo/${android.net.Uri.encode(course.id)}")
                         },
                         modifier = Modifier
                             .height(50.dp)
@@ -125,14 +116,12 @@ fun CourseDetailScreen(
                 .verticalScroll(rememberScrollState())
         ) {
 
-            // --- HEADER IMAGE SECTION ---
+            // --- HEADER IMAGE ---
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(260.dp)
             ) {
-                // [IMAGE PLACEHOLDER]
-                // Replace this Box with: AsyncImage(model = courseImageLink, contentScale = ContentScale.Crop, ...)
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -140,20 +129,13 @@ fun CourseDetailScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Image, // Placeholder Icon
+                        imageVector = Icons.Default.Image,
                         contentDescription = null,
                         modifier = Modifier.size(60.dp),
                         tint = Color.Gray.copy(alpha = 0.5f)
                     )
-                    Text(
-                        text = "Course Image",
-                        modifier = Modifier.padding(top = 80.dp),
-                        fontFamily = Montserrat,
-                        color = Color.Gray
-                    )
                 }
 
-                // Gradient Overlay for text visibility
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -165,7 +147,6 @@ fun CourseDetailScreen(
                         )
                 )
 
-                // Back Button
                 Box(
                     modifier = Modifier
                         .padding(16.dp)
@@ -183,7 +164,6 @@ fun CourseDetailScreen(
                     )
                 }
 
-                // Title Overlay
                 Column(
                     modifier = Modifier
                         .align(Alignment.BottomStart)
@@ -201,7 +181,7 @@ fun CourseDetailScreen(
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        text = course.name ?: "Unknown Course",
+                        text = course.name,
                         color = Color.White,
                         fontFamily = Montserrat,
                         fontWeight = FontWeight.Bold,
@@ -211,10 +191,10 @@ fun CourseDetailScreen(
                 }
             }
 
-            // --- CONTENT SECTION ---
+            // --- CONTENT ---
             Column(modifier = Modifier.padding(20.dp)) {
 
-                // Info Chips Row
+                // Info Chips
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -226,9 +206,9 @@ fun CourseDetailScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Course Details Box
+                // 1. KEY HIGHLIGHTS
                 Text(
-                    text = "Course Details",
+                    text = "Key Highlights",
                     fontFamily = Montserrat,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
@@ -243,28 +223,16 @@ fun CourseDetailScreen(
                         .padding(16.dp),
                     horizontalArrangement = Arrangement.SpaceAround
                 ) {
-                    DetailItem(
-                        title = "Certification",
-                        value = if (course.certification) "Yes" else "No",
-                        highlight = course.certification
-                    )
+                    DetailItem("Certification", if (course.certification) "Yes" else "No", course.certification)
                     Box(modifier = Modifier.width(1.dp).height(40.dp).background(Color.Gray.copy(0.3f)))
-                    DetailItem(
-                        title = "Language",
-                        value = "English/Urdu", // Hardcoded or from DB
-                        highlight = false
-                    )
+                    DetailItem("Language", "English/Urdu", false)
                     Box(modifier = Modifier.width(1.dp).height(40.dp).background(Color.Gray.copy(0.3f)))
-                    DetailItem(
-                        title = "Lectures",
-                        value = "24+", // Hardcoded or from DB
-                        highlight = false
-                    )
+                    DetailItem("Vendor", course.vendor ?: "Corvit", false)
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Description
+                // 2. ABOUT THIS COURSE
                 Text(
                     text = "About this Course",
                     fontFamily = Montserrat,
@@ -280,13 +248,80 @@ fun CourseDetailScreen(
                     lineHeight = 22.sp
                 )
 
-                Spacer(modifier = Modifier.height(100.dp)) // Space for bottom bar
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // 3. FEE STRUCTURE
+                Text(
+                    text = "Fee Structure",
+                    fontFamily = Montserrat,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        if (regularPrice > 0) {
+                            PriceRowItem("Regular Fee", "Rs. ${String.format("%,.0f", regularPrice)}")
+                        }
+
+                        if (discountPrice > 0 && discountPrice < regularPrice) {
+                            HorizontalDivider(color = Color.Gray.copy(alpha = 0.2f))
+                            PriceRowItem("Discounted Fee", "Rs. ${String.format("%,.0f", discountPrice)}", isHighlight = true)
+                        }
+
+                        course.prices?.group_usd?.let { usd ->
+                            if (usd > 0) {
+                                HorizontalDivider(color = Color.Gray.copy(alpha = 0.2f))
+                                PriceRowItem("Group Training (USD)", "$ ${String.format("%,.0f", usd)}")
+                            }
+                        }
+
+                        course.prices?.one_to_one_usd?.let { usd ->
+                            if (usd > 0) {
+                                HorizontalDivider(color = Color.Gray.copy(alpha = 0.2f))
+                                PriceRowItem("1-on-1 Training (USD)", "$ ${String.format("%,.0f", usd)}")
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(100.dp))
             }
         }
     }
 }
 
-// --- HELPER COMPOSABLES ---
+@Composable
+fun PriceRowItem(label: String, value: String, isHighlight: Boolean = false) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            fontFamily = Montserrat,
+            fontSize = 14.sp,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+        )
+        Text(
+            text = value,
+            fontFamily = Montserrat,
+            fontWeight = FontWeight.Bold,
+            fontSize = 15.sp,
+            color = if (isHighlight) Color(0xFF4CAF50) else CorvitPrimaryRed
+        )
+    }
+}
 
 @Composable
 fun DetailChip(icon: ImageVector, text: String) {
@@ -320,12 +355,7 @@ fun DetailChip(icon: ImageVector, text: String) {
 @Composable
 fun DetailItem(title: String, value: String, highlight: Boolean) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = title,
-            fontFamily = Montserrat,
-            fontSize = 12.sp,
-            color = Color.Gray
-        )
+        Text(title, fontFamily = Montserrat, fontSize = 12.sp, color = Color.Gray)
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = value,
