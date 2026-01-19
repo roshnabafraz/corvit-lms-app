@@ -1,19 +1,17 @@
 package com.corvit.corvit_lms.screens
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -31,17 +29,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.corvit.corvit_lms.R
 import com.corvit.corvit_lms.screens.components.getCategoryImageResId
+import com.corvit.corvit_lms.ui.theme.CorvitPrimaryRed
+import com.corvit.corvit_lms.ui.theme.Montserrat
 import com.corvit.corvit_lms.viewmodel.AuthState
 import com.corvit.corvit_lms.viewmodel.AuthViewModel
 import com.corvit.corvit_lms.viewmodel.CatalogViewModel
-import androidx.annotation.DrawableRes
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CategoryScreen(navController: NavController, authViewModel: AuthViewModel, catalogViewModel : CatalogViewModel){
-
+fun CategoryScreen(
+    navController: NavController,
+    authViewModel: AuthViewModel,
+    catalogViewModel: CatalogViewModel
+) {
     val authState = authViewModel.authState.observeAsState()
     val categories by catalogViewModel.categorylist.collectAsStateWithLifecycle()
     val courses by catalogViewModel.courseslist.collectAsStateWithLifecycle()
@@ -53,37 +53,71 @@ fun CategoryScreen(navController: NavController, authViewModel: AuthViewModel, c
             is AuthState.Unauthenticated -> {
                 navController.navigate("login")
             }
-            else -> {
-            }
+            else -> {}
         }
     }
 
-    if (sortedCategories.isEmpty()) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background
+    ) { paddingValues ->
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 20.dp)
         ) {
-            // Fix: Use theme content color
-            Text("No categories found", color = MaterialTheme.colorScheme.onBackground)
-        }
-    } else {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            items(sortedCategories) { category ->
 
-                val courseCount = courses.count { it.category_id == category.category_id }
+            // --- Header ---
+            Spacer(modifier = Modifier.height(20.dp))
+            Text(
+                text = "Browse",
+                fontFamily = Montserrat,
+                fontWeight = FontWeight.Bold,
+                fontSize = 28.sp,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Text(
+                text = "Categories",
+                fontFamily = Montserrat,
+                fontWeight = FontWeight.Bold,
+                fontSize = 28.sp,
+                color = CorvitPrimaryRed // Theme accent
+            )
+            Spacer(modifier = Modifier.height(20.dp))
 
-                val imageResId = getCategoryImageResId(category.order)
+            // --- Content ---
+            if (sortedCategories.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "No categories found",
+                        fontFamily = Montserrat,
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                    )
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(bottom = 20.dp)
+                ) {
+                    items(sortedCategories) { category ->
+                        val courseCount = courses.count { it.category_id == category.category_id }
+                        val imageResId = getCategoryImageResId(category.order)
 
-                CategoryCard(
-                    name = category.name,
-                    courseCount = courseCount,
-                    imageResId = imageResId,
-                    onClick = {
-                        navController.navigate("course/${category.category_id}")
+                        CategoryCard(
+                            name = category.name,
+                            courseCount = courseCount,
+                            imageResId = imageResId,
+                            onClick = {
+                                navController.navigate("course/${category.category_id}")
+                            }
+                        )
                     }
-                )
+                }
             }
         }
     }
@@ -99,13 +133,14 @@ fun CategoryCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(10.dp)
+            .height(160.dp) // Slightly taller for better look
             .clickable { onClick() },
-        shape = RoundedCornerShape(16.dp)
-        // Card uses the default surface color scheme which is theme-aware
+        shape = RoundedCornerShape(20.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Box(modifier = Modifier.height(140.dp)) {
+        Box(modifier = Modifier.fillMaxSize()) {
 
+            // Background Image
             Image(
                 painter = painterResource(id = imageResId),
                 contentDescription = "$name thumbnail",
@@ -113,7 +148,7 @@ fun CategoryCard(
                 contentScale = ContentScale.Crop
             )
 
-            // Gradient overlay (kept black for maximum readability over image)
+            // Gradient Overlay
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -121,40 +156,41 @@ fun CategoryCard(
                         Brush.verticalGradient(
                             colors = listOf(
                                 Color.Transparent,
-                                // Maintain strong contrast with 0.7f black alpha
-                                Color.Black.copy(alpha = 0.7f)
+                                Color.Black.copy(alpha = 0.8f) // Slightly darker at bottom for text readability
                             ),
                             startY = 0.3f
                         )
                     )
             )
 
-            // Metadata badge (Course Count)
-            Text(
-                text = "$courseCount Courses",
-                fontSize = 12.sp,
-                color = Color.White,
-                fontWeight = FontWeight.Medium,
+            // Metadata Badge (Top Left)
+            Box(
                 modifier = Modifier
                     .align(Alignment.TopStart)
-                    .padding(10.dp)
-                    // Use a slightly more theme-aware dark transparent color
-                    .background(
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                        RoundedCornerShape(8.dp)
-                    )
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-            )
+                    .padding(12.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color.Black.copy(alpha = 0.4f)) // Glass-like background
+                    .padding(horizontal = 10.dp, vertical = 6.dp)
+            ) {
+                Text(
+                    text = "$courseCount Courses",
+                    fontFamily = Montserrat,
+                    fontSize = 11.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.Medium
+                )
+            }
 
-            // Category name
+            // Category Name (Bottom Left)
             Text(
                 text = name,
+                fontFamily = Montserrat,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
                 modifier = Modifier
                     .align(Alignment.BottomStart)
-                    .padding(12.dp)
+                    .padding(16.dp)
             )
         }
     }
