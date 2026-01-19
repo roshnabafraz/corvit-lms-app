@@ -1,22 +1,30 @@
 package com.corvit.corvit_lms.screens
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.shape.RoundedCornerShape
+
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.corvit.corvit_lms.ui.theme.CorvitPrimaryRed
 import com.corvit.corvit_lms.ui.theme.Montserrat
 import com.corvit.corvit_lms.viewmodel.CatalogViewModel
 
@@ -27,17 +35,26 @@ fun CourseDetailScreen(
     courseId: String
 ) {
     val allCourses by catalogViewModel.courseslist.collectAsStateWithLifecycle()
+    // Finding course by ID (ensure logic matches your data structure)
     val course = allCourses.firstOrNull { it.category_id == courseId }
 
     if (course == null) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Course not found", color = MaterialTheme.colorScheme.onBackground)
+            Text("Course not found", fontFamily = Montserrat)
         }
         return
     }
 
-    // Hardcoded demo description (2–3 paragraphs)
-    val description = remember(course.name) {
+    // --- FIREBASE DATA PLACEHOLDERS ---
+
+    // 1. IMAGE LINK (Commented out for later)
+    // val courseImageLink = course.image_url // <--- UNCOMMENT THIS LATER
+
+    // 2. DESCRIPTION (Commented out logic for later)
+    // val description = course.description ?: "No description available." // <--- UNCOMMENT THIS LATER
+
+    // Hardcoded for now:
+    val description = remember {
         """
         ${course.name} is designed to help you build strong, practical skills with a clear learning path. You’ll learn core concepts with real-world examples and industry-style practices.
 
@@ -48,26 +65,58 @@ fun CourseDetailScreen(
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
-            Button(
-                onClick = {
-                    Toast.makeText(
-                        navController.context,
-                        "Enrolled in ${course.name}  (demo)",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                    //  open demo screen
-                    navController.navigate("enroll_demo/${android.net.Uri.encode(course.category_id)}")
-                },
-
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-                    .height(56.dp),
-                shape = RoundedCornerShape(14.dp)
+            // Sticky Bottom Bar with Price and Enroll Button
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shadowElevation = 16.dp,
+                color = MaterialTheme.colorScheme.surface,
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
             ) {
-                Text("ENROLL", fontFamily = Montserrat, fontWeight = FontWeight.Bold)
+                Row(
+                    modifier = Modifier
+                        .padding(20.dp)
+                        .navigationBarsPadding(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column {
+                        Text(
+                            text = "Total Price",
+                            fontFamily = Montserrat,
+                            fontSize = 12.sp,
+                            color = Color.Gray
+                        )
+                        val price = course.prices?.regular_pkr ?: 0.0
+                        Text(
+                            text = if (price == 0.0) "Free" else "Rs. ${String.format("%,.0f", price)}",
+                            fontFamily = Montserrat,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp,
+                            color = CorvitPrimaryRed
+                        )
+                    }
+
+                    Button(
+                        onClick = {
+                            Toast.makeText(navController.context, "Enrolled in ${course.name}", Toast.LENGTH_SHORT).show()
+                            // navController.navigate("enroll_demo/${android.net.Uri.encode(course.id)}")
+                        },
+                        modifier = Modifier
+                            .height(50.dp)
+                            .width(160.dp),
+                        shape = RoundedCornerShape(100.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = CorvitPrimaryRed)
+                    ) {
+                        Text(
+                            text = "Enroll Now",
+                            fontFamily = Montserrat,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
+                    }
+                }
             }
         }
     ) { padding ->
@@ -78,110 +127,214 @@ fun CourseDetailScreen(
                 .verticalScroll(rememberScrollState())
         ) {
 
-            // ✅ Header banner + back + title (no topbar)
+            // --- HEADER IMAGE SECTION ---
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(190.dp)
-                    .background(
-                        Brush.horizontalGradient(
-                            listOf(
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.90f),
-                                MaterialTheme.colorScheme.tertiary.copy(alpha = 0.70f)
+                    .height(260.dp)
+            ) {
+                // [IMAGE PLACEHOLDER]
+                // Replace this Box with: AsyncImage(model = courseImageLink, contentScale = ContentScale.Crop, ...)
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Image, // Placeholder Icon
+                        contentDescription = null,
+                        modifier = Modifier.size(60.dp),
+                        tint = Color.Gray.copy(alpha = 0.5f)
+                    )
+                    Text(
+                        text = "Course Image",
+                        modifier = Modifier.padding(top = 80.dp),
+                        fontFamily = Montserrat,
+                        color = Color.Gray
+                    )
+                }
+
+                // Gradient Overlay for text visibility
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f)),
+                                startY = 100f
                             )
                         )
-                    )
-            ) {
-                // Back button (simple text, no icons)
-                Text(
-                    text = "← Back",
-                    color = Color.White,
-                    fontFamily = Montserrat,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(16.dp)
-                        .clickable { navController.popBackStack() }
                 )
 
+                // Back Button
+                Box(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .statusBarsPadding()
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(Color.Black.copy(alpha = 0.3f))
+                        .clickable { navController.popBackStack() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Back",
+                        tint = Color.White
+                    )
+                }
+
+                // Title Overlay
                 Column(
                     modifier = Modifier
                         .align(Alignment.BottomStart)
-                        .padding(16.dp)
+                        .padding(20.dp)
                 ) {
                     Text(
-                        text = course.vendor ?: "Corvit",
-                        color = Color.White.copy(alpha = 0.9f),
+                        text = course.vendor ?: "Corvit Systems",
+                        color = CorvitPrimaryRed,
                         fontFamily = Montserrat,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 13.sp
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp,
+                        modifier = Modifier
+                            .background(Color.White, RoundedCornerShape(4.dp))
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
                     )
-                    Spacer(Modifier.height(6.dp))
+                    Spacer(Modifier.height(8.dp))
                     Text(
-                        text = course.name,
+                        text = course.name ?: "Unknown Course",
                         color = Color.White,
                         fontFamily = Montserrat,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 22.sp,
-                        maxLines = 2
+                        fontSize = 24.sp,
+                        lineHeight = 30.sp
                     )
                 }
             }
 
-            Spacer(Modifier.height(14.dp))
+            // --- CONTENT SECTION ---
+            Column(modifier = Modifier.padding(20.dp)) {
 
-            // Info chips
-            Row(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                AssistChip(onClick = {}, label = { Text(course.courseLevel ?: "N/A Level") })
-                AssistChip(onClick = {}, label = { Text(course.duration ?: "N/A Duration") })
-                AssistChip(onClick = {}, label = { Text(course.batchType ?: "N/A Batch") })
-            }
-
-            Spacer(Modifier.height(14.dp))
-
-            // Price + certification
-            val regularPrice = course.prices?.regular_pkr?.let {
-                "Fee: Rs. ${String.format("%,.0f", it)}"
-            } ?: "Price N/A"
-            val cert = if (course.certification) "Certified" else "No Certification"
-
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                shape = RoundedCornerShape(14.dp)
-            ) {
-                Column(Modifier.padding(16.dp)) {
-                    Text(regularPrice, fontFamily = Montserrat, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                    Spacer(Modifier.height(6.dp))
-                    Text(cert, fontFamily = Montserrat, color = MaterialTheme.colorScheme.onSurface.copy(0.75f))
+                // Info Chips Row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    DetailChip(Icons.Default.Star, course.courseLevel ?: "Beginner")
+                    DetailChip(Icons.Default.DateRange, course.duration ?: "N/A")
+                    DetailChip(Icons.Default.Person, course.batchType ?: "Physical")
                 }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Course Details Box
+                Text(
+                    text = "Course Details",
+                    fontFamily = Montserrat,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceAround
+                ) {
+                    DetailItem(
+                        title = "Certification",
+                        value = if (course.certification) "Yes" else "No",
+                        highlight = course.certification
+                    )
+                    Box(modifier = Modifier.width(1.dp).height(40.dp).background(Color.Gray.copy(0.3f)))
+                    DetailItem(
+                        title = "Language",
+                        value = "English/Urdu", // Hardcoded or from DB
+                        highlight = false
+                    )
+                    Box(modifier = Modifier.width(1.dp).height(40.dp).background(Color.Gray.copy(0.3f)))
+                    DetailItem(
+                        title = "Lectures",
+                        value = "24+", // Hardcoded or from DB
+                        highlight = false
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Description
+                Text(
+                    text = "About this Course",
+                    fontFamily = Montserrat,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = description,
+                    fontFamily = Montserrat,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                    fontSize = 14.sp,
+                    lineHeight = 22.sp
+                )
+
+                Spacer(modifier = Modifier.height(100.dp)) // Space for bottom bar
             }
-
-            Spacer(Modifier.height(14.dp))
-
-            Text(
-                text = "About this course",
-                modifier = Modifier.padding(horizontal = 16.dp),
-                fontFamily = Montserrat,
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp
-            )
-
-            Spacer(Modifier.height(8.dp))
-
-            Text(
-                text = description,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                fontFamily = Montserrat,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
-                lineHeight = 20.sp
-            )
-
-            Spacer(Modifier.height(90.dp))
         }
+    }
+}
+
+// --- HELPER COMPOSABLES ---
+
+@Composable
+fun DetailChip(icon: ImageVector, text: String) {
+    Surface(
+        shape = RoundedCornerShape(50),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        modifier = Modifier.height(32.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 12.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = CorvitPrimaryRed,
+                modifier = Modifier.size(14.dp)
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = text,
+                fontFamily = Montserrat,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+    }
+}
+
+@Composable
+fun DetailItem(title: String, value: String, highlight: Boolean) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = title,
+            fontFamily = Montserrat,
+            fontSize = 12.sp,
+            color = Color.Gray
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = value,
+            fontFamily = Montserrat,
+            fontWeight = FontWeight.Bold,
+            fontSize = 14.sp,
+            color = if (highlight) CorvitPrimaryRed else MaterialTheme.colorScheme.onSurface
+        )
     }
 }

@@ -1,6 +1,7 @@
 package com.corvit.corvit_lms.screens
 
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -47,6 +48,7 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
 
     val contentColor = MaterialTheme.colorScheme.onBackground
     val surfaceColor = MaterialTheme.colorScheme.surfaceVariant
+    val borderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
 
     LaunchedEffect(authState.value) {
         when (authState.value) {
@@ -83,7 +85,7 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(450.dp) // Slightly increased to fit buttons comfortably
+                    .height(450.dp)
                     .padding(horizontal = 16.dp)
                     .clip(RoundedCornerShape(24.dp))
                     .background(surfaceColor)
@@ -94,28 +96,32 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
                     verticalArrangement = Arrangement.Center
                 ) {
 
-                    Text("Login",
+                    Text(
+                        "Login",
                         fontFamily = Montserrat,
                         fontWeight = FontWeight.Bold,
                         color = contentColor,
-                        fontSize = 40.sp)
+                        fontSize = 40.sp
+                    )
 
                     Spacer(modifier = Modifier.height(22.dp))
 
-                    LabelledTextField(
+                    LabelledTextField2(
                         label = "Email",
                         value = email,
                         onValueChange = { email = it },
-                        placeholder = "Enter your email"
+                        placeholder = "Enter your email",
+                        borderColor = borderColor
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    LabelledTextField(
+                    LabelledTextField2(
                         label = "Password",
                         value = password,
                         onValueChange = { password = it },
-                        placeholder = "Enter your password"
+                        placeholder = "Enter your password",
+                        borderColor = borderColor
                     )
 
                     Spacer(modifier = Modifier.height(4.dp))
@@ -179,12 +185,15 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
 
                     Spacer(modifier = Modifier.height(12.dp))
 
+                    // GOOGLE SIGN-IN BUTTON
                     OutlinedButton(
                         onClick = {
                             coroutineScope.launch {
                                 val googleIdOption = GetGoogleIdOption.Builder()
                                     .setFilterByAuthorizedAccounts(false)
-                                    .setServerClientId("738353820122-qqfpe1f80rsbk62nkc19bi140m9152cr.apps.googleusercontent.com")                                    .setAutoSelectEnabled(true)
+                                    // Make sure to use your Type 3 Web Client ID here
+                                    .setServerClientId("738353820122-qqfpe1f80rsbk62nkc19bi140m9152cr.apps.googleusercontent.com")
+                                    .setAutoSelectEnabled(true)
                                     .build()
 
                                 val request = GetCredentialRequest.Builder()
@@ -199,7 +208,6 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
                                     val credential = result.credential
                                     if (credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
                                         val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
-                                        // Update your ViewModel to handle this token
                                         authViewModel.signInWithGoogle(googleIdTokenCredential.idToken)
                                     }
                                 } catch (e: GetCredentialException) {
@@ -211,13 +219,28 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
                         modifier = Modifier
                             .fillMaxWidth(0.8f)
                             .height(55.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = contentColor)
-                    ) {
-                        Text(
-                            "Continue with Google",
-                            fontFamily = Montserrat,
-                            fontWeight = FontWeight.Bold
+                        border = BorderStroke(1.dp, borderColor),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = contentColor,
+                            containerColor = Color.Transparent
                         )
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.google_logo),
+                                contentDescription = "Google Logo",
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                "Continue with Google",
+                                fontFamily = Montserrat,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
             }
@@ -227,22 +250,25 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
             TextButton(
                 onClick = { navController.navigate("signup") }
             ) {
-                Text(text = "Don't have an account? SignUp",
+                Text(
+                    text = "Don't have an account? SignUp",
                     color = contentColor,
                     fontSize = 14.sp,
                     fontFamily = Montserrat,
-                    fontWeight = FontWeight.Normal)
+                    fontWeight = FontWeight.Normal
+                )
             }
         }
     }
 }
 
 @Composable
-fun LabelledTextField(
+fun LabelledTextField2(
     label: String,
     value: String,
     onValueChange: (String) -> Unit,
-    placeholder: String
+    placeholder: String,
+    borderColor: Color
 ) {
     Column(modifier = Modifier.fillMaxWidth(0.9f)) {
 
@@ -268,8 +294,11 @@ fun LabelledTextField(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                            RoundedCornerShape(30.dp))
+                        .border(
+                            1.dp,
+                            borderColor,
+                            RoundedCornerShape(30.dp)
+                        )
                         .padding(horizontal = 16.dp, vertical = 14.dp)
                 ) {
                     if (value.isEmpty()) {

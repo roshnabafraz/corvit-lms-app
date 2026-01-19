@@ -3,27 +3,16 @@ package com.corvit.corvit_lms.screens
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,9 +25,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.corvit.corvit_lms.R
 import com.corvit.corvit_lms.ui.theme.Montserrat
+import com.corvit.corvit_lms.ui.theme.CorvitPrimaryRed
 import com.corvit.corvit_lms.viewmodel.AuthState
 import com.corvit.corvit_lms.viewmodel.AuthViewModel
-import com.corvit.corvit_lms.ui.theme.CorvitPrimaryRed // Import custom red
 
 @Composable
 fun SignupScreen(navController: NavController, authViewModel: AuthViewModel) {
@@ -49,39 +38,41 @@ fun SignupScreen(navController: NavController, authViewModel: AuthViewModel) {
 
     val authState = authViewModel.authState.observeAsState()
     val context = LocalContext.current
+
     val contentColor = MaterialTheme.colorScheme.onBackground
     val surfaceColor = MaterialTheme.colorScheme.surfaceVariant
+    // Define border color to match Login Screen
+    val borderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
 
     LaunchedEffect(authState.value) {
         when (authState.value) {
             is AuthState.Authenticated -> {
-                navController.navigate("home")
+                navController.navigate("home") {
+                    popUpTo("signup") { inclusive = true }
+                }
             }
             is AuthState.Error -> {
                 Toast.makeText(context, (authState.value as AuthState.Error).message, Toast.LENGTH_SHORT).show()
             }
-            else -> {
-                // Ignore other states
-            }
+            else -> {}
         }
     }
-
 
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.verticalScroll(rememberScrollState()) // Allow scrolling on small screens
         ) {
 
             Image(
-                painter = painterResource(id = R.drawable.logo),
+                painter = painterResource(id = R.drawable.corvit_logo),
                 contentDescription = "Corvit Logo",
                 modifier = Modifier
-                    .padding(top = 32.dp)
+                    .padding(top = 32.dp, bottom = 24.dp)
                     .height(200.dp)
             )
 
@@ -89,7 +80,6 @@ fun SignupScreen(navController: NavController, authViewModel: AuthViewModel) {
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(480.dp)
                     .padding(horizontal = 16.dp)
                     .clip(RoundedCornerShape(24.dp))
                     .background(surfaceColor)
@@ -97,13 +87,17 @@ fun SignupScreen(navController: NavController, authViewModel: AuthViewModel) {
 
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier.padding(vertical = 32.dp)
                 ) {
 
-                    Text("Sign Up",fontFamily = Montserrat,
+                    Text(
+                        "Sign Up",
+                        fontFamily = Montserrat,
                         fontWeight = FontWeight.Bold,
                         color = contentColor,
-                        fontSize = 40.sp)
+                        fontSize = 40.sp
+                    )
 
                     Spacer(modifier = Modifier.height(22.dp))
 
@@ -112,7 +106,8 @@ fun SignupScreen(navController: NavController, authViewModel: AuthViewModel) {
                         label = "Full Name",
                         value = name,
                         onValueChange = { name = it },
-                        placeholder = "Enter your name"
+                        placeholder = "Enter your name",
+                        borderColor = borderColor
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -122,7 +117,8 @@ fun SignupScreen(navController: NavController, authViewModel: AuthViewModel) {
                         label = "Email",
                         value = email,
                         onValueChange = { email = it },
-                        placeholder = "Enter your email"
+                        placeholder = "Enter your email",
+                        borderColor = borderColor
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -132,7 +128,8 @@ fun SignupScreen(navController: NavController, authViewModel: AuthViewModel) {
                         label = "Password",
                         value = password,
                         onValueChange = { password = it },
-                        placeholder = "Enter your password"
+                        placeholder = "Enter your password",
+                        borderColor = borderColor
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
@@ -140,17 +137,20 @@ fun SignupScreen(navController: NavController, authViewModel: AuthViewModel) {
                     // SIGN UP BUTTON
                     Button(
                         onClick = {
-                            authViewModel.Signup(email, password, name)
+                            if (name.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty()) {
+                                authViewModel.Signup(email, password, name)
+                            } else {
+                                Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT).show()
+                            }
                         },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = CorvitPrimaryRed,
-                            // 🔥 FIX: Explicitly set contentColor to White for guaranteed visibility
                             contentColor = Color.White
                         ),
                         shape = RoundedCornerShape(100.dp),
                         modifier = Modifier
                             .fillMaxWidth(0.8f)
-                            .height(60.dp)
+                            .height(55.dp)
                     ) {
                         Text("Sign Up", fontFamily = Montserrat, fontWeight = FontWeight.Bold)
                     }
@@ -160,17 +160,69 @@ fun SignupScreen(navController: NavController, authViewModel: AuthViewModel) {
             Spacer(modifier = Modifier.height(16.dp))
 
             TextButton(
-                onClick = {
-                    navController.navigate("login")
-                },
-
-                ) {
-                Text(text = "Already have an account? Login",
+                onClick = { navController.navigate("login") }
+            ) {
+                Text(
+                    text = "Already have an account? Login",
                     color = contentColor,
                     fontSize = 14.sp,
                     fontFamily = Montserrat,
-                    fontWeight = FontWeight.Normal)
+                    fontWeight = FontWeight.Normal
+                )
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
+    }
+}
+
+// ✅ DEFINED LOCALLY AND PRIVATE TO FIX 'Unresolved Reference'
+@Composable
+private fun LabelledTextField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    borderColor: Color
+) {
+    Column(modifier = Modifier.fillMaxWidth(0.9f)) {
+
+        Text(
+            text = label,
+            fontFamily = Montserrat,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground,
+            fontSize = 14.sp,
+            modifier = Modifier.padding(start = 8.dp, bottom = 6.dp)
+        )
+
+        BasicTextField(
+            value = value,
+            onValueChange = onValueChange,
+            singleLine = true,
+            textStyle = androidx.compose.ui.text.TextStyle(
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 16.sp,
+                fontFamily = Montserrat
+            ),
+            decorationBox = { innerTextField ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(1.dp, borderColor, RoundedCornerShape(30.dp))
+                        .padding(horizontal = 16.dp, vertical = 14.dp)
+                ) {
+                    if (value.isEmpty()) {
+                        Text(
+                            text = placeholder,
+                            color = Color.Gray,
+                            fontSize = 16.sp,
+                            fontFamily = Montserrat
+                        )
+                    }
+                    innerTextField()
+                }
+            }
+        )
     }
 }
