@@ -178,7 +178,7 @@ fun HomeScreen(
                             icon = Icons.Default.CalendarToday,
                             title = "Timetable",
                             modifier = Modifier.weight(1f)
-                        ) { Toast.makeText(context, "Timetable", Toast.LENGTH_SHORT).show() }
+                        ) { navController.navigate("timetable") }
 
                         QuickAccessCard(
                             icon = Icons.Default.Assignment,

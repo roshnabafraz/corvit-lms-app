@@ -33,6 +33,7 @@ import com.corvit.corvit_lms.screens.NotificationScreen
 import com.corvit.corvit_lms.screens.ProfileScreen
 import com.corvit.corvit_lms.screens.SignupScreen
 import com.corvit.corvit_lms.screens.SplashScreen
+import com.corvit.corvit_lms.screens.TimetableScreen
 import com.corvit.corvit_lms.screens.components.CustomBottomBar
 import com.corvit.corvit_lms.screens.components.LocalThemeToggleState
 import com.corvit.corvit_lms.screens.components.ThemeToggleState
@@ -132,6 +133,10 @@ fun MainNavGraph(authViewModel: AuthViewModel, catalogViewModel: CatalogViewMode
                     // --- MAIN TABS ---
                     composable("home") {
                         HomeScreen(navController, authViewModel, catalogViewModel)
+                    }
+
+                    composable("timetable") {
+                        TimetableScreen(navController = navController)
                     }
 
                     composable("categories") {
