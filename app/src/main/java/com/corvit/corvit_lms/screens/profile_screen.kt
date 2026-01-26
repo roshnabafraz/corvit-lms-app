@@ -25,7 +25,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -42,7 +41,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -181,8 +181,8 @@ fun ProfileScreen(
                 // WhatsApp Button
                 ContactActionButton(
                     text = "WhatsApp",
-                    icon = Icons.Filled.Send, // Use Icons.Default.Call or custom drawable if preferred
-                    backgroundColor = Color(0xFF25D366), // Official WhatsApp Green
+                    iconPainter = painterResource(id = R.drawable.whatsapp),
+                    backgroundColor = Color(0xFF25D366),
                     modifier = Modifier.weight(1f),
                     onClick = { openWhatsApp(context) }
                 )
@@ -190,8 +190,8 @@ fun ProfileScreen(
                 // Google Maps Button
                 ContactActionButton(
                     text = "Location",
-                    icon = Icons.Filled.LocationOn,
-                    backgroundColor = Color(0xFF4285F4), // Official Google Blue
+                    iconPainter = rememberVectorPainter(Icons.Filled.LocationOn),
+                    backgroundColor = Color(0xFF4285F4),
                     modifier = Modifier.weight(1f),
                     onClick = { openGoogleMaps(context) }
                 )
@@ -305,7 +305,7 @@ fun openGoogleMaps(context: Context) {
 @Composable
 fun ContactActionButton(
     text: String,
-    icon: ImageVector,
+    iconPainter: Painter,
     backgroundColor: Color,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
@@ -322,7 +322,7 @@ fun ContactActionButton(
             horizontalArrangement = Arrangement.Center
         ) {
             Icon(
-                imageVector = icon,
+                painter = iconPainter,
                 contentDescription = null,
                 tint = Color.White,
                 modifier = Modifier.size(20.dp)
