@@ -31,6 +31,7 @@ foundationLayout = "1.10.0"
 foundation = "1.10.0"
 uiText = "1.10.0"
 uiUnit = "1.10.0"
+coreAnimation = "1.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -68,6 +69,7 @@ androidx-compose-foundation = { group = "androidx.compose.foundation", name = "f
 androidx-compose-ui-text = { group = "androidx.compose.ui", name = "ui-text", version.ref = "uiText" }
 androidx-compose-ui-unit = { group = "androidx.compose.ui", name = "ui-unit", version.ref = "uiUnit" }
 google-play-services-auth = { group = "com.google.android.gms", name = "play-services-auth",  version.ref = "playServicesAuth" }
+androidx-core-animation = { group = "androidx.core", name = "core-animation", version.ref = "coreAnimation" }
 
 
 [plugins]

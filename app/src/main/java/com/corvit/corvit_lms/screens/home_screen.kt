@@ -1,6 +1,7 @@
 package com.corvit.corvit_lms.screens
 
 import android.widget.Toast
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -28,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.corvit.corvit_lms.data.Course
+import com.corvit.corvit_lms.screens.components.shimmerEffect
 import com.corvit.corvit_lms.ui.theme.CorvitPrimaryRed
 import com.corvit.corvit_lms.ui.theme.Montserrat
 import com.corvit.corvit_lms.viewmodel.AuthViewModel
@@ -91,13 +93,25 @@ fun HomeScreen(
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                         )
-                        Text(
-                            text = displayName,
-                            fontFamily = Montserrat,
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
+                        if (userDataState.value is UserDataState.Loading) {
+                            // ✨ Shimmer Box
+                            Box(
+                                modifier = Modifier
+                                    .padding(top = 4.dp)
+                                    .width(150.dp)
+                                    .height(24.dp)
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .shimmerEffect() // <--- Custom Modifier
+                            )
+                        } else {
+                            Text(
+                                text = displayName,
+                                fontFamily = Montserrat,
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                        }
                     }
 
                     // Profile Picture Placeholder
@@ -333,7 +347,21 @@ fun SectionHeader(title: String, onViewAll: () -> Unit) {
 
 @Composable
 fun RegisteredCourseCard(course: Course) {
-    // Just a placeholder design for now
+    // ✨ Animation State
+    var progress by remember { mutableFloatStateOf(0f) }
+
+    // Trigger animation on load
+    LaunchedEffect(Unit) {
+        // Animate to 0.4f (40%) over 1 second
+        androidx.compose.animation.core.animate(
+            initialValue = 0f,
+            targetValue = 0.4f,
+            animationSpec = tween(durationMillis = 1000)
+        ) { value, _ ->
+            progress = value
+        }
+    }
+
     Surface(
         modifier = Modifier
             .width(260.dp)
@@ -351,18 +379,20 @@ fun RegisteredCourseCard(course: Course) {
                 maxLines = 1
             )
             Spacer(modifier = Modifier.weight(1f))
+
+            // ✨ Use animated progress value
             LinearProgressIndicator(
-                progress = {
-                    0.4f // Dummy progress
-                },
+                progress = { progress },
                 modifier = Modifier.fillMaxWidth(),
                 color = CorvitPrimaryRed,
                 trackColor = CorvitPrimaryRed.copy(alpha = 0.2f),
                 strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
             )
             Spacer(modifier = Modifier.height(8.dp))
+
+            // Update text to match animation (Optional polish)
             Text(
-                text = "40% Completed",
+                text = "${(progress * 100).toInt()}% Completed",
                 fontFamily = Montserrat,
                 fontSize = 12.sp,
                 color = Color.Gray
