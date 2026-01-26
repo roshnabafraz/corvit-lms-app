@@ -44,6 +44,7 @@ import com.corvit.corvit_lms.viewmodel.CatalogViewModel
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import com.corvit.corvit_lms.screens.FAQScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -146,6 +147,10 @@ fun MainNavGraph(authViewModel: AuthViewModel, catalogViewModel: CatalogViewMode
 
                     composable("signup") {
                         SignupScreen(navController, authViewModel)
+                    }
+
+                    composable("faq") {
+                        FAQScreen(navController)
                     }
 
                     // --- MAIN TABS ---

@@ -235,7 +235,9 @@ fun ProfileScreen(
                 )
                 DividerItem()
 
-                ClickableItem("Help & Support")
+                ClickableItem("Help & Support") {
+                    navController.navigate("faq")
+                }
             }
         }
 
