@@ -1,6 +1,10 @@
 package com.corvit.corvit_lms.screens
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -35,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -47,13 +52,14 @@ import com.corvit.corvit_lms.ui.theme.CorvitPrimaryRed
 import com.corvit.corvit_lms.ui.theme.CorvitSuccessGreen
 import com.corvit.corvit_lms.ui.theme.Montserrat
 import com.corvit.corvit_lms.viewmodel.AuthViewModel
-import com.corvit.corvit_lms.viewmodel.UserDataState
 
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
 fun ProfileScreen(
     navController: NavController, authViewModel: AuthViewModel, userName: String
 ) {
+    val context = LocalContext.current
+
     // Dark Mode State
     val themeToggleState = LocalThemeToggleState.current
     val isDarkTheme = themeToggleState.isDarkTheme
@@ -67,6 +73,7 @@ fun ProfileScreen(
     var nameToUpdate by remember { mutableStateOf("") }
     var notificationsEnabled by remember { mutableStateOf(true) }
 
+    // --- EDIT NAME DIALOG ---
     if (showEditNameDialog) {
         AlertDialog(
             onDismissRequest = { showEditNameDialog = false },
@@ -123,6 +130,7 @@ fun ProfileScreen(
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
 
+        // 1. Profile Header
         item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -140,9 +148,7 @@ fun ProfileScreen(
 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                Column(
-                    verticalArrangement = Arrangement.Center
-                ) {
+                Column(verticalArrangement = Arrangement.Center) {
                     Text(
                         text = userName,
                         fontSize = 26.sp,
@@ -159,6 +165,21 @@ fun ProfileScreen(
             }
         }
 
+        // 2. Contact & Location (NEW)
+        item {
+            SectionTitle("Contact & Location")
+            SectionCard {
+                ClickableItem("Chat on WhatsApp") {
+                    openWhatsApp(context)
+                }
+                DividerItem()
+                ClickableItem("Locate on Google Maps") {
+                    openGoogleMaps(context)
+                }
+            }
+        }
+
+        // 3. Quick Access
         item {
             SectionTitle("Quick Access")
             SectionCard {
@@ -170,10 +191,10 @@ fun ProfileScreen(
             }
         }
 
+        // 4. Settings
         item {
             SectionTitle("Settings")
             SectionCard {
-                // Modified to trigger Dialog
                 ClickableItem("Edit Profile") {
                     nameToUpdate = if(userName != "Loading Name..." && userName != "Guest") userName else ""
                     showEditNameDialog = true
@@ -199,6 +220,7 @@ fun ProfileScreen(
             }
         }
 
+        // 5. Logout
         item {
             Box(
                 modifier = Modifier
@@ -221,11 +243,41 @@ fun ProfileScreen(
             }
 
             AppVersionText("1.0.0", "Stable")
+            Spacer(modifier = Modifier.height(20.dp))
         }
     }
 }
 
-// --- Helper Composables (Updated) ---
+// --- Intent Helper Functions ---
+
+fun openWhatsApp(context: Context) {
+    val phoneNumber = "+923038888555"
+    val message = "Hi Corvit, I have a query regarding a course."
+    val url = "https://api.whatsapp.com/send?phone=$phoneNumber&text=${Uri.encode(message)}"
+
+    val intent = Intent(Intent.ACTION_VIEW)
+    intent.data = Uri.parse(url)
+    try {
+        context.startActivity(intent)
+    } catch (e: Exception) {
+        Toast.makeText(context, "WhatsApp not installed", Toast.LENGTH_SHORT).show()
+    }
+}
+
+fun openGoogleMaps(context: Context) {
+    // Coordinates for Corvit Systems Lahore
+    val gmmIntentUri = Uri.parse("geo:31.5204,74.3587?q=Corvit+Systems+Lahore")
+    val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+    mapIntent.setPackage("com.google.android.apps.maps")
+
+    try {
+        context.startActivity(mapIntent)
+    } catch (e: Exception) {
+        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://maps.google.com/?q=Corvit+Systems+Lahore"))
+        context.startActivity(browserIntent)
+    }
+}
+
 
 @Composable
 fun ClickableItem(title: String, onClick: () -> Unit = {}) {
@@ -237,7 +289,7 @@ fun ClickableItem(title: String, onClick: () -> Unit = {}) {
         color = MaterialTheme.colorScheme.onSurface,
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() } // Updated to use the lambda
+            .clickable { onClick() }
             .padding(horizontal = 16.dp, vertical = 14.dp)
     )
 }
@@ -254,7 +306,6 @@ fun ToggleItem(
             .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-
         Text(
             text = title,
             fontSize = 15.sp,

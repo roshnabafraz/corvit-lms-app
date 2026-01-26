@@ -1,6 +1,7 @@
 package com.corvit.corvit_lms.navigation
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -72,7 +73,8 @@ fun MainNavGraph(authViewModel: AuthViewModel, catalogViewModel: CatalogViewMode
     val showBottomBar = currentRoute !in noBottomBarScreens
 
     // 3. Theme State
-    val isDarkThemeEnabled = rememberSaveable { mutableStateOf(false) }
+    val systemTheme = isSystemInDarkTheme()
+    val isDarkThemeEnabled = rememberSaveable { mutableStateOf(systemTheme) }
 
     val themeState = remember(isDarkThemeEnabled.value) {
         ThemeToggleState(
