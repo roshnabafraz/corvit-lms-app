@@ -23,9 +23,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
@@ -38,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -165,17 +170,31 @@ fun ProfileScreen(
             }
         }
 
-        // 2. Contact & Location (NEW)
+        // 2. Contact Buttons (WhatsApp & Location)
         item {
-            SectionTitle("Contact & Location")
-            SectionCard {
-                ClickableItem("Chat on WhatsApp") {
-                    openWhatsApp(context)
-                }
-                DividerItem()
-                ClickableItem("Locate on Google Maps") {
-                    openGoogleMaps(context)
-                }
+            SectionTitle("Contact Us")
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // WhatsApp Button
+                ContactActionButton(
+                    text = "WhatsApp",
+                    icon = Icons.Filled.Send, // Use Icons.Default.Call or custom drawable if preferred
+                    backgroundColor = Color(0xFF25D366), // Official WhatsApp Green
+                    modifier = Modifier.weight(1f),
+                    onClick = { openWhatsApp(context) }
+                )
+
+                // Google Maps Button
+                ContactActionButton(
+                    text = "Location",
+                    icon = Icons.Filled.LocationOn,
+                    backgroundColor = Color(0xFF4285F4), // Official Google Blue
+                    modifier = Modifier.weight(1f),
+                    onClick = { openGoogleMaps(context) }
+                )
             }
         }
 
@@ -251,6 +270,7 @@ fun ProfileScreen(
 // --- Intent Helper Functions ---
 
 fun openWhatsApp(context: Context) {
+    // Replace with Corvit's official number
     val phoneNumber = "+923038888555"
     val message = "Hi Corvit, I have a query regarding a course."
     val url = "https://api.whatsapp.com/send?phone=$phoneNumber&text=${Uri.encode(message)}"
@@ -273,11 +293,51 @@ fun openGoogleMaps(context: Context) {
     try {
         context.startActivity(mapIntent)
     } catch (e: Exception) {
+        // If Google Maps app is not installed, open in browser
         val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://maps.google.com/?q=Corvit+Systems+Lahore"))
         context.startActivity(browserIntent)
     }
 }
 
+
+// --- Helper Composables ---
+
+@Composable
+fun ContactActionButton(
+    text: String,
+    icon: ImageVector,
+    backgroundColor: Color,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier.height(50.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = backgroundColor),
+        shape = RoundedCornerShape(12.dp),
+        elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = text,
+                fontSize = 14.sp,
+                fontFamily = Montserrat,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+        }
+    }
+}
 
 @Composable
 fun ClickableItem(title: String, onClick: () -> Unit = {}) {
