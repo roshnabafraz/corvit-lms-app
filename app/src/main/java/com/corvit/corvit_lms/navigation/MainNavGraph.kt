@@ -41,6 +41,9 @@ import com.corvit.corvit_lms.screens.components.ThemeToggleState
 import com.corvit.corvit_lms.ui.theme.CorvitLMSTheme
 import com.corvit.corvit_lms.viewmodel.AuthViewModel
 import com.corvit.corvit_lms.viewmodel.CatalogViewModel
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -111,7 +114,20 @@ fun MainNavGraph(authViewModel: AuthViewModel, catalogViewModel: CatalogViewMode
                 NavHost(
                     navController = navController,
                     modifier = Modifier.padding(innerPadding),
-                    startDestination = "splash"
+                    startDestination = "splash",
+
+                    enterTransition = {
+                        slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(400))
+                    },
+                    exitTransition = {
+                        slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(400))
+                    },
+                    popEnterTransition = {
+                        slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(400))
+                    },
+                    popExitTransition = {
+                        slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(400))
+                    }
                 ) {
 
                     // --- SPLASH ---
