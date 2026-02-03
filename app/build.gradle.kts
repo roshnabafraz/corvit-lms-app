@@ -82,10 +82,9 @@ dependencies {
     implementation("com.google.android.gms:play-services-auth:21.5.0")
     implementation("com.google.firebase:firebase-auth-ktx:23.0.0")
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
-
     implementation("androidx.datastore:datastore-preferences:1.2.0")
-
     implementation ("com.pierfrancescosoffritti.androidyoutubeplayer:core:13.0.0")
-
-    implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation("com.squareup.retrofit2:retrofit:3.0.0")
+    implementation("com.squareup.retrofit2:converter-gson:3.0.0")
 }

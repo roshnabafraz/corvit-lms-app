@@ -1,6 +1,5 @@
 package com.corvit.corvit_lms.screens
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -26,35 +25,40 @@ import androidx.navigation.NavController
 import com.corvit.corvit_lms.ui.theme.CorvitPrimaryRed
 import com.corvit.corvit_lms.ui.theme.Montserrat
 import com.corvit.corvit_lms.viewmodel.CatalogViewModel
+import com.corvit.corvit_lms.data.ApiCourse
 
 @Composable
 fun CourseDetailScreen(
     navController: NavController,
     catalogViewModel: CatalogViewModel,
-    courseName: String
+    courseName: String, // Kept for header/fallback
+    courseId: Int       // ✅ Added ID for accurate lookup
 ) {
-    val allCourses by catalogViewModel.courseslist.collectAsStateWithLifecycle()
-    val course = allCourses.firstOrNull { it.name == courseName }
+    // 1. Collect the list from ViewModel
+    // Make sure your ViewModel property is named 'coursesList' (camelCase)
+    val allCourses by catalogViewModel.coursesList.collectAsStateWithLifecycle()
+
+    // 2. Find the course by ID (More accurate than name)
+    val course = allCourses.firstOrNull { it.id == courseId }
 
     if (course == null) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Course not found", fontFamily = Montserrat)
+            CircularProgressIndicator(color = CorvitPrimaryRed)
         }
         return
     }
 
-    val regularPrice = course.prices?.discount_pkr ?: 0.0
-    val discountPrice = course.prices?.regular_pkr ?: 0.0
+    // 3. Map API Fields to UI Logic
+    val fee = course.fee ?: 0.0
+    val durationText = "${course.durationInWeeks ?: 0} Weeks"
+    val deliveryMode = course.deliveryMode ?: "Physical"
+    val type = course.type ?: "Private"
 
-    val finalPrice = if (discountPrice > 0 && discountPrice < regularPrice) discountPrice else regularPrice
-
-    val description = remember {
-        """
-        ${course.name} is designed to help you build strong, practical skills with a clear learning path. You’ll learn core concepts with real-world examples and industry-style practices.
-
-        This course includes structured learning modules, guided practice, and key takeaways that help you apply knowledge in projects and assessments. You’ll also get a clear understanding of best practices used by professionals.
-        """.trimIndent()
-    }
+    // Default description if API returns null
+    val description = course.description ?: """
+        ${course.name} is designed to help you build strong, practical skills. 
+        You’ll learn core concepts with real-world examples and industry-style practices.
+    """.trimIndent()
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -74,13 +78,13 @@ fun CourseDetailScreen(
                 ) {
                     Column {
                         Text(
-                            text = if (discountPrice > 0 && discountPrice < regularPrice) "Discounted Price" else "Total Price",
+                            text = "Total Fee",
                             fontFamily = Montserrat,
                             fontSize = 12.sp,
                             color = Color.Gray
                         )
                         Text(
-                            text = if (finalPrice == 0.0) "Free" else "Rs. ${String.format("%,.0f", finalPrice)}",
+                            text = if (fee == 0.0) "Free" else "Rs. ${String.format("%,.0f", fee)}",
                             fontFamily = Montserrat,
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp,
@@ -90,10 +94,9 @@ fun CourseDetailScreen(
 
                     Button(
                         onClick = {
-
-                            val encodedCourseName = android.net.Uri.encode(course.name)
-
-                            navController.navigate("enrollment/$encodedCourseName")
+                            val encodedName = android.net.Uri.encode(course.name)
+                            // Navigate with both Name and ID
+                            navController.navigate("enrollment/$encodedName/${course.id}")
                         },
                         modifier = Modifier
                             .height(50.dp)
@@ -125,6 +128,7 @@ fun CourseDetailScreen(
                     .fillMaxWidth()
                     .height(260.dp)
             ) {
+                // Background Placeholder
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -139,6 +143,7 @@ fun CourseDetailScreen(
                     )
                 }
 
+                // Gradient Overlay
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -150,6 +155,7 @@ fun CourseDetailScreen(
                         )
                 )
 
+                // Back Button
                 Box(
                     modifier = Modifier
                         .padding(16.dp)
@@ -167,13 +173,14 @@ fun CourseDetailScreen(
                     )
                 }
 
+                // Title & Vendor
                 Column(
                     modifier = Modifier
                         .align(Alignment.BottomStart)
                         .padding(20.dp)
                 ) {
                     Text(
-                        text = course.vendor ?: "Corvit Systems",
+                        text = type, // e.g. "Private" or "NAVTTC"
                         color = CorvitPrimaryRed,
                         fontFamily = Montserrat,
                         fontWeight = FontWeight.Bold,
@@ -202,9 +209,10 @@ fun CourseDetailScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    DetailChip(Icons.Default.Star, course.courseLevel ?: "Beginner")
-                    DetailChip(Icons.Default.DateRange, course.duration ?: "N/A")
-                    DetailChip(Icons.Default.Person, course.batchType ?: "Physical")
+                    // Mapped to new API fields
+                    DetailChip(Icons.Default.DateRange, durationText)
+                    DetailChip(Icons.Default.Person, deliveryMode)
+                    DetailChip(Icons.Default.Info, if(fee == 0.0) "Funded" else "Paid")
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -226,11 +234,11 @@ fun CourseDetailScreen(
                         .padding(16.dp),
                     horizontalArrangement = Arrangement.SpaceAround
                 ) {
-                    DetailItem("Certification", if (course.certification) "Yes" else "No", course.certification)
-                    Box(modifier = Modifier.width(1.dp).height(40.dp).background(Color.Gray.copy(0.3f)))
-                    DetailItem("Language", "English/Urdu", false)
-                    Box(modifier = Modifier.width(1.dp).height(40.dp).background(Color.Gray.copy(0.3f)))
-                    DetailItem("Vendor", course.vendor ?: "Corvit", false)
+                    DetailItem("Hours", "${course.totalHours ?: 0} Hrs", true)
+                    VerticalDivider()
+                    DetailItem("Mode", deliveryMode, false)
+                    VerticalDivider()
+                    DetailItem("Type", type, false)
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -251,50 +259,23 @@ fun CourseDetailScreen(
                     lineHeight = 22.sp
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // 3. FEE STRUCTURE
-                Text(
-                    text = "Fee Structure",
-                    fontFamily = Montserrat,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        if (regularPrice > 0) {
-                            PriceRowItem("Regular Fee", "Rs. ${String.format("%,.0f", regularPrice)}")
-                        }
-
-                        if (discountPrice > 0 && discountPrice < regularPrice) {
-                            HorizontalDivider(color = Color.Gray.copy(alpha = 0.2f))
-                            PriceRowItem("Discounted Fee", "Rs. ${String.format("%,.0f", discountPrice)}", isHighlight = true)
-                        }
-
-                        course.prices?.group_usd?.let { usd ->
-                            if (usd > 0) {
-                                HorizontalDivider(color = Color.Gray.copy(alpha = 0.2f))
-                                PriceRowItem("Group Training (USD)", "$ ${String.format("%,.0f", usd)}")
-                            }
-                        }
-
-                        course.prices?.one_to_one_usd?.let { usd ->
-                            if (usd > 0) {
-                                HorizontalDivider(color = Color.Gray.copy(alpha = 0.2f))
-                                PriceRowItem("1-on-1 Training (USD)", "$ ${String.format("%,.0f", usd)}")
-                            }
-                        }
-                    }
+                // Syllabus Section (If available)
+                if (!course.syllabus.isNullOrEmpty()) {
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Text(
+                        text = "Syllabus Overview",
+                        fontFamily = Montserrat,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = course.syllabus,
+                        fontFamily = Montserrat,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        fontSize = 14.sp,
+                        lineHeight = 22.sp
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(100.dp))
@@ -303,27 +284,16 @@ fun CourseDetailScreen(
     }
 }
 
+// --- HELPER COMPOSABLES ---
+
 @Composable
-fun PriceRowItem(label: String, value: String, isHighlight: Boolean = false) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = label,
-            fontFamily = Montserrat,
-            fontSize = 14.sp,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-        )
-        Text(
-            text = value,
-            fontFamily = Montserrat,
-            fontWeight = FontWeight.Bold,
-            fontSize = 15.sp,
-            color = if (isHighlight) Color(0xFF4CAF50) else CorvitPrimaryRed
-        )
-    }
+fun VerticalDivider() {
+    Box(
+        modifier = Modifier
+            .width(1.dp)
+            .height(40.dp)
+            .background(Color.Gray.copy(0.3f))
+    )
 }
 
 @Composable

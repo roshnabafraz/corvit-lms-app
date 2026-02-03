@@ -28,13 +28,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.corvit.corvit_lms.data.Course
+// ✅ 1. Import the new API Model
+import com.corvit.corvit_lms.data.ApiCourse
 import com.corvit.corvit_lms.screens.components.shimmerEffect
 import com.corvit.corvit_lms.ui.theme.CorvitPrimaryRed
 import com.corvit.corvit_lms.ui.theme.Montserrat
 import com.corvit.corvit_lms.viewmodel.AuthViewModel
 import com.corvit.corvit_lms.viewmodel.CatalogViewModel
 import com.corvit.corvit_lms.viewmodel.UserDataState
+// ✅ 2. Explicitly import getValue
+import androidx.compose.runtime.getValue
 
 @Composable
 fun HomeScreen(
@@ -54,18 +57,19 @@ fun HomeScreen(
         else -> "Student"
     }
 
-    // Fetch Courses
-    val allCourses by catalogViewModel.courseslist.collectAsStateWithLifecycle()
+    // Fetch Courses (Now using ApiCourse)
+    // ✅ Make sure this matches your ViewModel variable name (coursesList vs courseslist)
+    val allCourses by catalogViewModel.coursesList.collectAsStateWithLifecycle()
 
     // Filter logic: Get random courses for "Recommended"
     val recommendedCourses = remember(allCourses) {
-        allCourses.filter { !it.name.isNullOrBlank() }
+        allCourses.filter { it.name.isNotEmpty() }
             .shuffled()
             .take(5)
     }
 
-    // Dummy registered courses (replace with real enrollment logic later)
-    val registeredCourses = remember { emptyList<Course>() }
+    // Dummy registered courses (Using ApiCourse type now)
+    val registeredCourses = remember { emptyList<ApiCourse>() }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background
@@ -101,7 +105,7 @@ fun HomeScreen(
                                     .width(150.dp)
                                     .height(24.dp)
                                     .clip(RoundedCornerShape(4.dp))
-                                    .shimmerEffect() // <--- Custom Modifier
+                                    .shimmerEffect()
                             )
                         } else {
                             Text(
@@ -140,7 +144,7 @@ fun HomeScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(16.dp))
-                        .background(CorvitPrimaryRed) // Using your Red Color
+                        .background(CorvitPrimaryRed)
                         .clickable { /* Open Announcements */ }
                         .padding(20.dp)
                 ) {
@@ -174,7 +178,7 @@ fun HomeScreen(
                 }
             }
 
-            // --- 4. QUICK ACCESS GRID (6 Buttons) ---
+            // --- 4. QUICK ACCESS GRID ---
             item {
                 Text(
                     text = "Quick Access",
@@ -185,7 +189,6 @@ fun HomeScreen(
                 )
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // We use a Column of Rows to simulate a grid inside a LazyColumn item
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         QuickAccessCard(
@@ -260,24 +263,23 @@ fun HomeScreen(
 
             // --- 6. RECOMMENDED COURSES ---
             item {
-                SectionHeader("Recommended for you") { navController.navigate("course_screen") }
+                SectionHeader("Recommended for you") { navController.navigate("categories") }
 
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     items(recommendedCourses) { course ->
                         RecommendedCourseCardSimple(course) {
-                            navController.navigate("course_detail/${android.net.Uri.encode(course.category_id)}")
+                            // ✅ Pass ID and Name properly
+                            val encodedName = android.net.Uri.encode(course.name)
+                            navController.navigate("course_detail/$encodedName/${course.id}")
                         }
                     }
                 }
-                Spacer(modifier = Modifier.height(30.dp)) // Bottom padding
+                Spacer(modifier = Modifier.height(30.dp))
             }
         }
     }
 }
 
-// ------------------------------------
-// UI COMPONENTS
-// ------------------------------------
 
 @Composable
 fun QuickAccessCard(
@@ -288,7 +290,7 @@ fun QuickAccessCard(
 ) {
     Surface(
         modifier = modifier
-            .aspectRatio(1f) // Makes it a square
+            .aspectRatio(1f)
             .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
@@ -346,13 +348,10 @@ fun SectionHeader(title: String, onViewAll: () -> Unit) {
 }
 
 @Composable
-fun RegisteredCourseCard(course: Course) {
-    // ✨ Animation State
+fun RegisteredCourseCard(course: ApiCourse) {
     var progress by remember { mutableFloatStateOf(0f) }
 
-    // Trigger animation on load
     LaunchedEffect(Unit) {
-        // Animate to 0.4f (40%) over 1 second
         androidx.compose.animation.core.animate(
             initialValue = 0f,
             targetValue = 0.4f,
@@ -372,7 +371,7 @@ fun RegisteredCourseCard(course: Course) {
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
             Text(
-                text = course.name ?: "Untitled Course",
+                text = course.name,
                 fontFamily = Montserrat,
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
@@ -380,7 +379,6 @@ fun RegisteredCourseCard(course: Course) {
             )
             Spacer(modifier = Modifier.weight(1f))
 
-            // ✨ Use animated progress value
             LinearProgressIndicator(
                 progress = { progress },
                 modifier = Modifier.fillMaxWidth(),
@@ -390,7 +388,6 @@ fun RegisteredCourseCard(course: Course) {
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Update text to match animation (Optional polish)
             Text(
                 text = "${(progress * 100).toInt()}% Completed",
                 fontFamily = Montserrat,
@@ -402,7 +399,7 @@ fun RegisteredCourseCard(course: Course) {
 }
 
 @Composable
-fun RecommendedCourseCardSimple(course: Course, onClick: () -> Unit) {
+fun RecommendedCourseCardSimple(course: ApiCourse, onClick: () -> Unit) {
     Surface(
         modifier = Modifier
             .width(160.dp)
@@ -415,7 +412,6 @@ fun RecommendedCourseCardSimple(course: Course, onClick: () -> Unit) {
         Column(
             modifier = Modifier.padding(12.dp)
         ) {
-            // Placeholder Image Box
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -432,7 +428,7 @@ fun RecommendedCourseCardSimple(course: Course, onClick: () -> Unit) {
             }
             Spacer(modifier = Modifier.height(10.dp))
             Text(
-                text = course.name ?: "Course",
+                text = course.name,
                 fontFamily = Montserrat,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 14.sp,
@@ -443,7 +439,7 @@ fun RecommendedCourseCardSimple(course: Course, onClick: () -> Unit) {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = course.batchType ?: "General",
+                text = course.deliveryMode ?: "General",
                 fontFamily = Montserrat,
                 fontSize = 11.sp,
                 color = Color.Gray

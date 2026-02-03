@@ -24,7 +24,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.corvit.corvit_lms.R
-import com.corvit.corvit_lms.screens.CategoryScreen
 import com.corvit.corvit_lms.screens.CourseDetailScreen
 import com.corvit.corvit_lms.screens.CoursesScreen
 import com.corvit.corvit_lms.screens.Enroll_Screen
@@ -45,6 +44,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import com.corvit.corvit_lms.screens.FAQScreen
+import com.corvit.corvit_lms.screens.EnrollDoneScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,21 +56,22 @@ fun MainNavGraph(authViewModel: AuthViewModel, catalogViewModel: CatalogViewMode
     val currentRoute = navBackStackEntry?.destination?.route
 
     // 2. Define Bar Visibility
-    // Added enrollment route here so Top/Bottom bars hide when filling the form
     val noTopBarScreens = listOf(
         "splash",
         "login",
         "signup",
-        "course_detail/{courseName}",
-        "enrollment/{courseName}"
+        "course_detail/{courseName}/{courseId}",
+        "enrollment/{courseName}/{courseId}",
+        "enroll_done/{courseName}/{studentName}/{batchName}/{city}"
     )
 
     val noBottomBarScreens = listOf(
         "splash",
         "login",
         "signup",
-        "course_detail/{courseName}",
-        "enrollment/{courseName}"
+        "course_detail/{courseName}/{courseId}",
+        "enrollment/{courseName}/{courseId}",
+        "enroll_done/{courseName}/{studentName}/{batchName}/{city}"
     )
 
     val showTopBar = currentRoute !in noTopBarScreens
@@ -116,89 +117,86 @@ fun MainNavGraph(authViewModel: AuthViewModel, catalogViewModel: CatalogViewMode
                     navController = navController,
                     modifier = Modifier.padding(innerPadding),
                     startDestination = "splash",
-
-                    enterTransition = {
-                        slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(400))
-                    },
-                    exitTransition = {
-                        slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(400))
-                    },
-                    popEnterTransition = {
-                        slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(400))
-                    },
-                    popExitTransition = {
-                        slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(400))
-                    }
+                    enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(400)) },
+                    exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(400)) },
+                    popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(400)) },
+                    popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(400)) }
                 ) {
 
-                    // --- SPLASH ---
+                    // --- SPLASH & AUTH ---
                     composable("splash") {
                         SplashScreen {
-                            navController.navigate("login") {
-                                popUpTo("splash") { inclusive = true }
-                            }
+                            navController.navigate("login") { popUpTo("splash") { inclusive = true } }
                         }
                     }
-
-                    // --- AUTH ---
-                    composable("login") {
-                        LoginScreen(navController, authViewModel)
-                    }
-
-                    composable("signup") {
-                        SignupScreen(navController, authViewModel)
-                    }
-
-                    composable("faq") {
-                        FAQScreen(navController)
-                    }
+                    composable("login") { LoginScreen(navController, authViewModel) }
+                    composable("signup") { SignupScreen(navController, authViewModel) }
 
                     // --- MAIN TABS ---
-                    composable("home") {
-                        HomeScreen(navController, authViewModel, catalogViewModel)
-                    }
+                    composable("home") { HomeScreen(navController, authViewModel, catalogViewModel) }
 
-                    composable("timetable") {
-                        TimetableScreen(navController = navController)
-                    }
+                    composable("timetable") { TimetableScreen(navController = navController) }
 
-                    composable("categories") {
-                        CategoryScreen(navController, authViewModel, catalogViewModel)
-                    }
+                    composable("notifications") { NotificationScreen() }
 
-                    composable("notifications") {
-                        NotificationScreen()
-                    }
+                    composable("profile") { ProfileScreen(navController, authViewModel, userName = userName) }
 
-                    composable("profile") {
-                        ProfileScreen(navController, authViewModel, userName = userName)
-                    }
+                    composable("faq") { FAQScreen(navController) }
 
                     // --- COURSES ---
-                    composable("course/{categoryId}") { backStackEntry ->
-                        val categoryId = backStackEntry.arguments?.getString("categoryId") ?: ""
-                        CoursesScreen(navController, catalogViewModel, categoryId)
+                    // "categories" tab now points directly to the list of courses
+                    composable("categories") {
+                        CoursesScreen(navController = navController, catalogViewModel = catalogViewModel)
                     }
 
-                    // ✅ UPDATED: Uses 'courseName'
+                    // Course Details (Now accepts ID)
                     composable(
-                        route = "course_detail/{courseName}",
-                        arguments = listOf(navArgument("courseName") { type = NavType.StringType })
+                        route = "course_detail/{courseName}/{courseId}",
+                        arguments = listOf(
+                            navArgument("courseName") { type = NavType.StringType },
+                            navArgument("courseId") { type = NavType.IntType }
+                        )
                     ) { backStackEntry ->
                         val courseName = backStackEntry.arguments?.getString("courseName") ?: ""
-                        CourseDetailScreen(navController, catalogViewModel, courseName)
+                        val courseId = backStackEntry.arguments?.getInt("courseId") ?: 0
+                        CourseDetailScreen(navController, catalogViewModel, courseName, courseId)
                     }
 
+                    // --- ENROLLMENT ---
                     composable(
-                        route = "enrollment/{courseName}",
-                        arguments = listOf(navArgument("courseName") { type = NavType.StringType })
+                        route = "enrollment/{courseName}/{courseId}",
+                        arguments = listOf(
+                            navArgument("courseName") { type = NavType.StringType },
+                            navArgument("courseId") { type = NavType.IntType }
+                        )
                     ) { backStackEntry ->
                         val courseName = backStackEntry.arguments?.getString("courseName") ?: ""
+                        val courseId = backStackEntry.arguments?.getInt("courseId") ?: 0
 
                         Enroll_Screen(
                             navController = navController,
                             authViewModel = authViewModel,
-                            courseName = courseName
+                            courseName = courseName,
+                            courseId = courseId
+                        )
+                    }
+
+                    // Success Screen
+                    composable(
+                        route = "enroll_done/{courseName}/{studentName}/{batchName}/{city}",
+                        arguments = listOf(
+                            navArgument("courseName") { type = NavType.StringType },
+                            navArgument("studentName") { type = NavType.StringType },
+                            navArgument("batchName") { type = NavType.StringType },
+                            navArgument("city") { type = NavType.StringType }
+                        )
+                    ) { backStackEntry ->
+                        EnrollDoneScreen(
+                            navController = navController,
+                            courseId = backStackEntry.arguments?.getString("courseName") ?: "",
+                            name = backStackEntry.arguments?.getString("studentName") ?: "",
+                            phone = backStackEntry.arguments?.getString("batchName") ?: "", // passing batch as phone param for display
+                            city = backStackEntry.arguments?.getString("city") ?: ""
                         )
                     }
                 }

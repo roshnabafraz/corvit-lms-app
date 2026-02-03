@@ -22,40 +22,37 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.corvit.corvit_lms.R
-import com.corvit.corvit_lms.data.Course
-import com.corvit.corvit_lms.data.CourseFilter
+import com.corvit.corvit_lms.data.ApiCourse
 import com.corvit.corvit_lms.ui.theme.CorvitPrimaryRed
 import com.corvit.corvit_lms.ui.theme.Montserrat
 import com.corvit.corvit_lms.viewmodel.CatalogViewModel
 
+enum class CourseFilter { ALL, FREE, PRIVATE, NAVTTC }
+
 @Composable
 fun CoursesScreen(
     navController: NavController,
-    catalogViewModel: CatalogViewModel,
-    categoryId: String
+    catalogViewModel: CatalogViewModel
+    // ❌ REMOVED categoryId parameter
 ) {
-    val allCourses by catalogViewModel.courseslist.collectAsStateWithLifecycle()
+    val allCourses by catalogViewModel.coursesList.collectAsStateWithLifecycle()
     var selectedFilter by remember { mutableStateOf(CourseFilter.ALL) }
     var searchText by remember { mutableStateOf("") }
-    var appliedQuery by remember { mutableStateOf("") }
 
-    // Logic: Filter by Category -> Filter by Type -> Search
-    val categoryCourses = allCourses.filter { it.category_id == categoryId }
-
+    // 1. Filter Logic
     val filteredCourses = when (selectedFilter) {
-        CourseFilter.ALL -> categoryCourses
-        CourseFilter.FREE -> categoryCourses.filter { it.prices?.regular_pkr == 0.0 }
-        CourseFilter.CERTIFIED -> categoryCourses.filter { it.certification }
-        CourseFilter.PRICE_LOW_HIGH -> categoryCourses.sortedBy { it.prices?.regular_pkr ?: Double.MAX_VALUE }
-        CourseFilter.PRICE_HIGH_LOW -> categoryCourses.sortedByDescending { it.prices?.regular_pkr ?: 0.0 }
-        else -> categoryCourses
+        CourseFilter.ALL -> allCourses
+        CourseFilter.FREE -> allCourses.filter { (it.fee ?: 0.0) == 0.0 }
+        CourseFilter.PRIVATE -> allCourses.filter { it.type == "Private" }
+        CourseFilter.NAVTTC -> allCourses.filter { it.type == "NAVTTC" }
     }
 
-    val finalCourses = remember(filteredCourses, appliedQuery) {
-        val q = appliedQuery.trim()
-        if (q.isEmpty()) filteredCourses
-        else filteredCourses.filter { it.name.contains(q, ignoreCase = true) }
+    // 2. Search Logic
+    val finalCourses = remember(filteredCourses, searchText) {
+        if (searchText.isBlank()) filteredCourses
+        else filteredCourses.filter { it.name.contains(searchText, ignoreCase = true) }
     }
 
     Scaffold(
@@ -67,11 +64,19 @@ fun CoursesScreen(
                 .padding(padding)
         ) {
 
+            // Header
+            Text(
+                text = "All Courses",
+                fontFamily = Montserrat,
+                fontWeight = FontWeight.Bold,
+                fontSize = 24.sp,
+                modifier = Modifier.padding(start = 20.dp, top = 20.dp)
+            )
+
             // Search Bar
             CourseSearchBar(
                 text = searchText,
-                onTextChange = { searchText = it },
-                onSearchClick = { appliedQuery = searchText }
+                onTextChange = { searchText = it }
             )
 
             // Filter Row
@@ -86,9 +91,8 @@ fun CoursesScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    val msg = if (appliedQuery.isNotEmpty()) "No results for \"$appliedQuery\"" else "No courses found"
                     Text(
-                        text = msg,
+                        "No courses found",
                         fontFamily = Montserrat,
                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                     )
@@ -103,9 +107,8 @@ fun CoursesScreen(
                         CourseCard(
                             course = course,
                             onClick = {
-                                // 🔥 FIX: Use 'course.name' instead of 'category_id'
-                                // Since you don't have an ID, Name is the only unique way to distinguish them
-                                navController.navigate("course_detail/${android.net.Uri.encode(course.name)}")
+                                val encodedName = android.net.Uri.encode(course.name)
+                                navController.navigate("course_detail/$encodedName/${course.id}")
                             }
                         )
                     }
@@ -115,108 +118,9 @@ fun CoursesScreen(
     }
 }
 
-// ... (Rest of your Composable functions: CourseSearchBar, CourseFilterRow, CourseCard stay exactly the same)
-@Composable
-private fun CourseSearchBar(
-    text: String,
-    onTextChange: (String) -> Unit,
-    onSearchClick: () -> Unit
-) {
-    OutlinedTextField(
-        value = text,
-        onValueChange = onTextChange,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 10.dp),
-        singleLine = true,
-        textStyle = androidx.compose.ui.text.TextStyle(
-            fontFamily = Montserrat,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Normal,
-            color = MaterialTheme.colorScheme.onSurface
-        ),
-        placeholder = {
-            Text(
-                text = "Search course...",
-                fontFamily = Montserrat,
-                fontSize = 14.sp,
-                color = Color.Gray
-            )
-        },
-        shape = RoundedCornerShape(50.dp),
-        trailingIcon = {
-            Button(
-                onClick = onSearchClick,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = CorvitPrimaryRed,
-                    contentColor = Color.White
-                ),
-                shape = RoundedCornerShape(50.dp),
-                contentPadding = PaddingValues(horizontal = 20.dp),
-                modifier = Modifier
-                    .padding(end = 6.dp)
-                    .height(40.dp)
-            ) {
-                Text(
-                    text = "Search",
-                    fontFamily = Montserrat,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp
-                )
-            }
-        },
-        colors = TextFieldDefaults.colors(
-            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-            unfocusedIndicatorColor = Color.Transparent,
-            focusedIndicatorColor = Color.Transparent
-        )
-    )
-}
-
-@Composable
-fun CourseFilterRow(
-    selectedFilter: CourseFilter,
-    onFilterSelected: (CourseFilter) -> Unit
-) {
-    val filters = listOf(
-        CourseFilter.ALL to "All",
-        CourseFilter.CERTIFIED to "Certified",
-        CourseFilter.PRICE_LOW_HIGH to "Price: Low → High",
-        CourseFilter.PRICE_HIGH_LOW to "Price: High → Low"
-    )
-
-    LazyRow(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 8.dp),
-        contentPadding = PaddingValues(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(filters) { (filter, label) ->
-            val isSelected = filter == selectedFilter
-
-            Text(
-                text = label,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.SemiBold,
-                fontFamily = Montserrat,
-                color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(50))
-                    .background(
-                        if (isSelected) CorvitPrimaryRed else MaterialTheme.colorScheme.surfaceVariant
-                    )
-                    .clickable { onFilterSelected(filter) }
-                    .padding(horizontal = 16.dp, vertical = 10.dp)
-            )
-        }
-    }
-}
-
 @Composable
 fun CourseCard(
-    course: Course,
+    course: ApiCourse,
     onClick: () -> Unit
 ) {
     Card(
@@ -228,17 +132,31 @@ fun CourseCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column {
+            // Image Box
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(150.dp)
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.demo),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
+                if (course.imagePath.isNullOrEmpty()) {
+                    // Fallback Image
+                    Image(
+                        painter = painterResource(id = R.drawable.demo), // Ensure you have a placeholder in drawable
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    // Real API Image
+                    AsyncImage(
+                        model = course.getFullImageUrl(), // Use the helper we made
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+
+                // Gradient
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -248,25 +166,26 @@ fun CourseCard(
                             )
                         )
                 )
-                if (course.certification) {
-                    Text(
-                        text = "Certified",
-                        fontSize = 11.sp,
-                        fontFamily = Montserrat,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .padding(12.dp)
-                            .background(
-                                CorvitPrimaryRed.copy(alpha = 0.9f),
-                                RoundedCornerShape(6.dp)
-                            )
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                    )
-                }
+
+                // Type Badge (Private / NAVTTC)
+                Text(
+                    text = course.type ?: "Course",
+                    fontSize = 11.sp,
+                    fontFamily = Montserrat,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(12.dp)
+                        .background(
+                            CorvitPrimaryRed.copy(alpha = 0.9f),
+                            RoundedCornerShape(6.dp)
+                        )
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                )
             }
 
+            // Details
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
                     text = course.name,
@@ -278,12 +197,12 @@ fun CourseCard(
                     lineHeight = 22.sp
                 )
                 Spacer(modifier = Modifier.height(6.dp))
+
+                // Info Row
                 val infoText = buildString {
-                    append(course.courseLevel ?: "N/A")
+                    append(course.deliveryMode ?: "Physical")
                     append(" • ")
-                    append(course.duration ?: "N/A")
-                    append(" • ")
-                    append(course.batchType ?: "N/A")
+                    append("${course.durationInWeeks ?: 0} Weeks")
                 }
                 Text(
                     text = infoText,
@@ -291,9 +210,13 @@ fun CourseCard(
                     fontFamily = Montserrat,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
+
                 Spacer(modifier = Modifier.height(10.dp))
-                val price = course.prices?.regular_pkr ?: 0.0
-                val priceText = if (price == 0.0) "Free" else "Rs. ${String.format("%,.0f", price)}"
+
+                // Price
+                val price = course.fee ?: 0.0
+                val priceText = if (price == 0.0) "Free / Funded" else "Rs. ${String.format("%,.0f", price)}"
+
                 Text(
                     text = priceText,
                     fontSize = 16.sp,
@@ -302,6 +225,57 @@ fun CourseCard(
                     color = if (price == 0.0) Color(0xFF4CAF50) else CorvitPrimaryRed
                 )
             }
+        }
+    }
+}
+
+// Helper Components
+@Composable
+fun CourseSearchBar(text: String, onTextChange: (String) -> Unit) {
+    OutlinedTextField(
+        value = text,
+        onValueChange = onTextChange,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        singleLine = true,
+        placeholder = { Text("Search...", fontFamily = Montserrat) },
+        shape = RoundedCornerShape(50),
+        colors = OutlinedTextFieldDefaults.colors(
+            unfocusedBorderColor = Color.LightGray,
+            focusedBorderColor = CorvitPrimaryRed
+        )
+    )
+}
+
+@Composable
+fun CourseFilterRow(selectedFilter: CourseFilter, onFilterSelected: (CourseFilter) -> Unit) {
+    val filters = listOf(
+        CourseFilter.ALL to "All",
+        CourseFilter.FREE to "Free/Funded",
+        CourseFilter.PRIVATE to "Paid Courses",
+        CourseFilter.NAVTTC to "NAVTTC"
+    )
+
+    LazyRow(
+        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(filters) { (filter, label) ->
+            val isSelected = filter == selectedFilter
+            Text(
+                text = label,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                fontFamily = Montserrat,
+                color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(50))
+                    .background(if (isSelected) CorvitPrimaryRed else MaterialTheme.colorScheme.surfaceVariant)
+                    .clickable { onFilterSelected(filter) }
+                    .padding(horizontal = 16.dp, vertical = 10.dp)
+            )
         }
     }
 }

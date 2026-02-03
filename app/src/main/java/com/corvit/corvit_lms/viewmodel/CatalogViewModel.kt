@@ -1,80 +1,38 @@
 package com.corvit.corvit_lms.viewmodel
 
 import androidx.lifecycle.ViewModel
-import com.corvit.corvit_lms.data.Category
-import com.corvit.corvit_lms.data.Course
-import com.google.firebase.Firebase
-import com.google.firebase.firestore.firestore
+import androidx.lifecycle.viewModelScope
+import com.corvit.corvit_lms.data.ApiCourse
+import com.corvit.corvit_lms.network.RetrofitClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
-class CatalogViewModel : ViewModel(){
+class CatalogViewModel : ViewModel() {
 
-    private var _categorylist = MutableStateFlow<List<Category>>(emptyList())
-    var categorylist = _categorylist.asStateFlow()
+    private val _coursesList = MutableStateFlow<List<ApiCourse>>(emptyList())
+    val coursesList = _coursesList.asStateFlow()
 
-    private var _courseslist = MutableStateFlow<List<Course>>(emptyList())
-    var courseslist = _courseslist.asStateFlow()
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading = _isLoading.asStateFlow()
 
     init {
-        getCategories()
-        getCourses()
+        fetchCourses()
     }
 
-    fun getCategories(){
-        val db = Firebase.firestore
-
-        db.collection("categories").addSnapshotListener { snapshot, error ->
-            if (error != null) {
-                return@addSnapshotListener
-            }
-
-            if (snapshot != null) {
-                _categorylist.value = snapshot.toObjects(Category::class.java)
+    fun fetchCourses() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val response = RetrofitClient.api.getAllCourses()
+                if (response.isSuccessful && response.body()?.status == true) {
+                    _coursesList.value = response.body()!!.courses
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                _isLoading.value = false
             }
         }
-
-
     }
-
-    fun getCourses(){
-        val db = Firebase.firestore
-
-        db.collection("courses").addSnapshotListener { snapshot, error ->
-            if (error != null) {
-                return@addSnapshotListener
-            }
-
-            if (snapshot != null) {
-                _courseslist.value = snapshot.toObjects(Course::class.java)
-            }
-        }
-
-
-    }
-
 }
-
-
-//class CatalogViewModel : ViewModel() {
-//
-//    private val _categorylist = MutableStateFlow<List<Category>>(emptyList())
-//    val categorylist = _categorylist.asStateFlow()
-//
-//    init {
-//        getCategories()
-//    }
-//
-//    fun getCategories() {
-//        val db = Firebase.firestore
-//        db.collection("categories")
-//            .get()
-//            .addOnSuccessListener { snapshot ->
-//                _categorylist.value = snapshot.toObjects(Category::class.java)
-//            }
-//            .addOnFailureListener {
-//                Log.e("CatalogVM", "Error fetching categories", it)
-//            }
-//    }
-//
-//}
