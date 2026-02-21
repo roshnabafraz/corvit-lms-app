@@ -45,6 +45,14 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import com.corvit.corvit_lms.screens.FAQScreen
 import com.corvit.corvit_lms.screens.EnrollDoneScreen
+import com.corvit.corvit_lms.screens.MyCoursesScreen
+import com.corvit.corvit_lms.screens.CertificationsScreen
+import com.corvit.corvit_lms.screens.PaymentsScreen
+import com.corvit.corvit_lms.screens.ResultsScreen
+import com.corvit.corvit_lms.screens.AssignmentsScreen
+import com.corvit.corvit_lms.screens.DateSheetScreen
+import com.corvit.corvit_lms.screens.AttendanceScreen
+import com.corvit.corvit_lms.screens.FeeChallanScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -142,6 +150,18 @@ fun MainNavGraph(authViewModel: AuthViewModel, catalogViewModel: CatalogViewMode
                     composable("profile") { ProfileScreen(navController, authViewModel, userName = userName) }
 
                     composable("faq") { FAQScreen(navController) }
+                    
+                    // --- NEW PROFILE SCREENS ---
+                    composable("my_courses") { MyCoursesScreen(navController) }
+                    composable("certifications") { CertificationsScreen(navController) }
+                    composable("payments") { PaymentsScreen(navController) }
+                    
+                    // --- NEW HOME SCREENS ---
+                    composable("results") { ResultsScreen(navController) }
+                    composable("assignments") { AssignmentsScreen(navController) }
+                    composable("date_sheet") { DateSheetScreen(navController) }
+                    composable("attendance") { AttendanceScreen(navController) }
+                    composable("fee_challan") { FeeChallanScreen(navController) }
 
                     // --- COURSES ---
                     // "categories" tab now points directly to the list of courses

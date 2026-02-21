@@ -189,13 +189,13 @@ fun HomeScreen(
                             icon = Icons.Default.Assignment,
                             title = "Assignments",
                             modifier = Modifier.weight(1f)
-                        ) { Toast.makeText(context, "Assignments", Toast.LENGTH_SHORT).show() }
+                        ) { navController.navigate("assignments") }
 
                         QuickAccessCard(
                             icon = Icons.Default.BarChart,
                             title = "Results",
                             modifier = Modifier.weight(1f)
-                        ) { Toast.makeText(context, "Results", Toast.LENGTH_SHORT).show() }
+                        ) { navController.navigate("results") }
                     }
 
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -203,19 +203,19 @@ fun HomeScreen(
                             icon = Icons.Default.DateRange,
                             title = "Date Sheet",
                             modifier = Modifier.weight(1f)
-                        ) { Toast.makeText(context, "Date Sheet", Toast.LENGTH_SHORT).show() }
+                        ) { navController.navigate("date_sheet") }
 
                         QuickAccessCard(
                             icon = Icons.Default.CheckCircle,
                             title = "Attendance",
                             modifier = Modifier.weight(1f)
-                        ) { Toast.makeText(context, "Attendance", Toast.LENGTH_SHORT).show() }
+                        ) { navController.navigate("attendance") }
 
                         QuickAccessCard(
                             icon = Icons.Default.AttachMoney,
                             title = "Fee Challan",
                             modifier = Modifier.weight(1f)
-                        ) { Toast.makeText(context, "Fee Challan", Toast.LENGTH_SHORT).show() }
+                        ) { navController.navigate("fee_challan") }
                     }
                 }
             }

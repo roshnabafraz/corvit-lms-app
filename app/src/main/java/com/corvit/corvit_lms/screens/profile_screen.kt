@@ -192,11 +192,11 @@ fun ProfileScreen(
         item {
             SectionTitle("Quick Access")
             SectionCard {
-                ClickableItem("My Courses")
+                ClickableItem("My Courses") { navController.navigate("my_courses") }
                 DividerItem()
-                ClickableItem("Certificates")
+                ClickableItem("Certificates") { navController.navigate("certifications") }
                 DividerItem()
-                ClickableItem("Payments")
+                ClickableItem("Payments") { navController.navigate("payments") }
             }
         }
 
