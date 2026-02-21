@@ -3,12 +3,14 @@ package com.corvit.corvit_lms.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.corvit.corvit_lms.data.ApiCourse
-import com.corvit.corvit_lms.network.RetrofitClient
+import com.corvit.corvit_lms.data.repository.CourseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class CatalogViewModel : ViewModel() {
+class CatalogViewModel(
+    private val courseRepository: CourseRepository = CourseRepository()
+) : ViewModel() {
 
     private val _coursesList = MutableStateFlow<List<ApiCourse>>(emptyList())
     val coursesList = _coursesList.asStateFlow()
@@ -23,16 +25,14 @@ class CatalogViewModel : ViewModel() {
     fun fetchCourses() {
         viewModelScope.launch {
             _isLoading.value = true
-            try {
-                val response = RetrofitClient.api.getAllCourses()
-                if (response.isSuccessful && response.body()?.status == true) {
-                    _coursesList.value = response.body()!!.courses
+            courseRepository.fetchCourses()
+                .onSuccess { courses ->
+                    _coursesList.value = courses
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            } finally {
-                _isLoading.value = false
-            }
+                .onFailure {
+                    // Handle failure if needed, potentially with a UI state map
+                }
+            _isLoading.value = false
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.corvit.corvit_lms.screens
 
+import android.R.attr.contentDescription
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -35,13 +36,13 @@ enum class CourseFilter { ALL, FREE, PRIVATE, NAVTTC }
 fun CoursesScreen(
     navController: NavController,
     catalogViewModel: CatalogViewModel
-    // ❌ REMOVED categoryId parameter
+
 ) {
     val allCourses by catalogViewModel.coursesList.collectAsStateWithLifecycle()
     var selectedFilter by remember { mutableStateOf(CourseFilter.ALL) }
     var searchText by remember { mutableStateOf("") }
 
-    // 1. Filter Logic
+
     val filteredCourses = when (selectedFilter) {
         CourseFilter.ALL -> allCourses
         CourseFilter.FREE -> allCourses.filter { (it.fee ?: 0.0) == 0.0 }
@@ -49,7 +50,7 @@ fun CoursesScreen(
         CourseFilter.NAVTTC -> allCourses.filter { it.type == "NAVTTC" }
     }
 
-    // 2. Search Logic
+
     val finalCourses = remember(filteredCourses, searchText) {
         if (searchText.isBlank()) filteredCourses
         else filteredCourses.filter { it.name.contains(searchText, ignoreCase = true) }
@@ -64,7 +65,7 @@ fun CoursesScreen(
                 .padding(padding)
         ) {
 
-            // Header
+
             Text(
                 text = "All Courses",
                 fontFamily = Montserrat,
@@ -73,19 +74,19 @@ fun CoursesScreen(
                 modifier = Modifier.padding(start = 20.dp, top = 20.dp)
             )
 
-            // Search Bar
+
             CourseSearchBar(
                 text = searchText,
                 onTextChange = { searchText = it }
             )
 
-            // Filter Row
+
             CourseFilterRow(
                 selectedFilter = selectedFilter,
                 onFilterSelected = { selectedFilter = it }
             )
 
-            // Content List
+
             if (finalCourses.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -132,31 +133,29 @@ fun CourseCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column {
-            // Image Box
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(150.dp)
             ) {
                 if (course.imagePath.isNullOrEmpty()) {
-                    // Fallback Image
                     Image(
-                        painter = painterResource(id = R.drawable.demo), // Ensure you have a placeholder in drawable
+                        painter = painterResource(id = R.drawable.demo),
                         contentDescription = null,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
                 } else {
-                    // Real API Image
                     AsyncImage(
-                        model = course.getFullImageUrl(), // Use the helper we made
+                        model = course.getFullImageUrl(),
                         contentDescription = null,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
                 }
 
-                // Gradient
+
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -167,7 +166,7 @@ fun CourseCard(
                         )
                 )
 
-                // Type Badge (Private / NAVTTC)
+
                 Text(
                     text = course.type ?: "Course",
                     fontSize = 11.sp,
@@ -185,7 +184,7 @@ fun CourseCard(
                 )
             }
 
-            // Details
+
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
                     text = course.name,
@@ -198,7 +197,7 @@ fun CourseCard(
                 )
                 Spacer(modifier = Modifier.height(6.dp))
 
-                // Info Row
+
                 val infoText = buildString {
                     append(course.deliveryMode ?: "Physical")
                     append(" • ")
@@ -213,7 +212,7 @@ fun CourseCard(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // Price
+
                 val price = course.fee ?: 0.0
                 val priceText = if (price == 0.0) "Free / Funded" else "Rs. ${String.format("%,.0f", price)}"
 
@@ -229,7 +228,7 @@ fun CourseCard(
     }
 }
 
-// Helper Components
+
 @Composable
 fun CourseSearchBar(text: String, onTextChange: (String) -> Unit) {
     OutlinedTextField(

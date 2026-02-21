@@ -65,20 +65,16 @@ fun ProfileScreen(
 ) {
     val context = LocalContext.current
 
-    // Dark Mode State
     val themeToggleState = LocalThemeToggleState.current
     val isDarkTheme = themeToggleState.isDarkTheme
     val onDarkModeToggled = themeToggleState.toggleTheme
 
-    // User Data State
     val userDataState = authViewModel.userDataState.observeAsState()
 
-    // Dialog States
     var showEditNameDialog by remember { mutableStateOf(false) }
     var nameToUpdate by remember { mutableStateOf("") }
     var notificationsEnabled by remember { mutableStateOf(true) }
 
-    // --- EDIT NAME DIALOG ---
     if (showEditNameDialog) {
         AlertDialog(
             onDismissRequest = { showEditNameDialog = false },
@@ -127,7 +123,6 @@ fun ProfileScreen(
         )
     }
 
-    // --- MAIN UI ---
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -135,7 +130,6 @@ fun ProfileScreen(
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
 
-        // 1. Profile Header
         item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -170,7 +164,6 @@ fun ProfileScreen(
             }
         }
 
-        // 2. Contact Buttons (WhatsApp & Location)
         item {
             SectionTitle("Contact Us")
 
@@ -178,7 +171,6 @@ fun ProfileScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // WhatsApp Button
                 ContactActionButton(
                     text = "WhatsApp",
                     iconPainter = painterResource(id = R.drawable.whatsapp),
@@ -187,7 +179,6 @@ fun ProfileScreen(
                     onClick = { openWhatsApp(context) }
                 )
 
-                // Google Maps Button
                 ContactActionButton(
                     text = "Location",
                     iconPainter = rememberVectorPainter(Icons.Filled.LocationOn),
@@ -198,7 +189,6 @@ fun ProfileScreen(
             }
         }
 
-        // 3. Quick Access
         item {
             SectionTitle("Quick Access")
             SectionCard {
@@ -210,7 +200,6 @@ fun ProfileScreen(
             }
         }
 
-        // 4. Settings
         item {
             SectionTitle("Settings")
             SectionCard {
@@ -241,7 +230,6 @@ fun ProfileScreen(
             }
         }
 
-        // 5. Logout
         item {
             Box(
                 modifier = Modifier
@@ -269,10 +257,7 @@ fun ProfileScreen(
     }
 }
 
-// --- Intent Helper Functions ---
-
 fun openWhatsApp(context: Context) {
-    // Replace with Corvit's official number
     val phoneNumber = "+923038888555"
     val message = "Hi Corvit, I have a query regarding a course."
     val url = "https://api.whatsapp.com/send?phone=$phoneNumber&text=${Uri.encode(message)}"
@@ -287,7 +272,6 @@ fun openWhatsApp(context: Context) {
 }
 
 fun openGoogleMaps(context: Context) {
-    // Coordinates for Corvit Systems Lahore
     val gmmIntentUri = Uri.parse("geo:31.5204,74.3587?q=Corvit+Systems+Lahore")
     val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
     mapIntent.setPackage("com.google.android.apps.maps")
@@ -295,14 +279,11 @@ fun openGoogleMaps(context: Context) {
     try {
         context.startActivity(mapIntent)
     } catch (e: Exception) {
-        // If Google Maps app is not installed, open in browser
         val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://maps.google.com/?q=Corvit+Systems+Lahore"))
         context.startActivity(browserIntent)
     }
 }
 
-
-// --- Helper Composables ---
 
 @Composable
 fun ContactActionButton(

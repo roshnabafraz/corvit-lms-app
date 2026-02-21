@@ -28,7 +28,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-// ✅ 1. Import the new API Model
 import com.corvit.corvit_lms.data.ApiCourse
 import com.corvit.corvit_lms.screens.components.shimmerEffect
 import com.corvit.corvit_lms.ui.theme.CorvitPrimaryRed
@@ -36,7 +35,6 @@ import com.corvit.corvit_lms.ui.theme.Montserrat
 import com.corvit.corvit_lms.viewmodel.AuthViewModel
 import com.corvit.corvit_lms.viewmodel.CatalogViewModel
 import com.corvit.corvit_lms.viewmodel.UserDataState
-// ✅ 2. Explicitly import getValue
 import androidx.compose.runtime.getValue
 
 @Composable
@@ -47,7 +45,6 @@ fun HomeScreen(
 ) {
     val context = LocalContext.current
 
-    // --- 1. Data Fetching ---
     val userDataState = authViewModel.userDataState.observeAsState()
     LaunchedEffect(Unit) { authViewModel.getUserName() }
 
@@ -57,18 +54,14 @@ fun HomeScreen(
         else -> "Student"
     }
 
-    // Fetch Courses (Now using ApiCourse)
-    // ✅ Make sure this matches your ViewModel variable name (coursesList vs courseslist)
     val allCourses by catalogViewModel.coursesList.collectAsStateWithLifecycle()
 
-    // Filter logic: Get random courses for "Recommended"
     val recommendedCourses = remember(allCourses) {
         allCourses.filter { it.name.isNotEmpty() }
             .shuffled()
             .take(5)
     }
 
-    // Dummy registered courses (Using ApiCourse type now)
     val registeredCourses = remember { emptyList<ApiCourse>() }
 
     Scaffold(
@@ -82,7 +75,6 @@ fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
 
-            // --- 2. HEADER SECTION ---
             item {
                 Spacer(modifier = Modifier.height(20.dp))
                 Row(
@@ -98,7 +90,6 @@ fun HomeScreen(
                             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                         )
                         if (userDataState.value is UserDataState.Loading) {
-                            // ✨ Shimmer Box
                             Box(
                                 modifier = Modifier
                                     .padding(top = 4.dp)
@@ -118,7 +109,6 @@ fun HomeScreen(
                         }
                     }
 
-                    // Profile Picture Placeholder
                     Box(
                         modifier = Modifier
                             .size(50.dp)
@@ -138,7 +128,6 @@ fun HomeScreen(
                 }
             }
 
-            // --- 3. ANNOUNCEMENTS BOX ---
             item {
                 Box(
                     modifier = Modifier
@@ -178,7 +167,6 @@ fun HomeScreen(
                 }
             }
 
-            // --- 4. QUICK ACCESS GRID ---
             item {
                 Text(
                     text = "Quick Access",
@@ -232,7 +220,6 @@ fun HomeScreen(
                 }
             }
 
-            // --- 5. REGISTERED COURSES ---
             item {
                 SectionHeader("Registered Courses") { /* View All */ }
 
@@ -261,14 +248,12 @@ fun HomeScreen(
                 }
             }
 
-            // --- 6. RECOMMENDED COURSES ---
             item {
                 SectionHeader("Recommended for you") { navController.navigate("categories") }
 
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     items(recommendedCourses) { course ->
                         RecommendedCourseCardSimple(course) {
-                            // ✅ Pass ID and Name properly
                             val encodedName = android.net.Uri.encode(course.name)
                             navController.navigate("course_detail/$encodedName/${course.id}")
                         }

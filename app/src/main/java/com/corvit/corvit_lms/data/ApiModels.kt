@@ -1,5 +1,6 @@
 package com.corvit.corvit_lms.data
 
+import androidx.compose.runtime.Stable
 import com.google.gson.annotations.SerializedName
 
 data class CourseListResponse(
@@ -14,6 +15,7 @@ data class CourseDetailResponse(
     val course: ApiCourse
 )
 
+@Stable
 data class ApiCourse(
     val id: Int,
     val name: String,
@@ -42,6 +44,7 @@ data class BatchListResponse(
     val batches: List<ApiBatch>
 )
 
+@Stable
 data class ApiBatch(
     val id: Int,
     val name: String,
@@ -60,6 +63,7 @@ data class ApiBatch(
     }
 }
 
+@Stable
 data class ApiInstructor(
     val id: String,
     val name: String,

@@ -31,14 +31,11 @@ import com.corvit.corvit_lms.data.ApiCourse
 fun CourseDetailScreen(
     navController: NavController,
     catalogViewModel: CatalogViewModel,
-    courseName: String, // Kept for header/fallback
-    courseId: Int       // ✅ Added ID for accurate lookup
+    courseName: String,
+    courseId: Int
 ) {
-    // 1. Collect the list from ViewModel
-    // Make sure your ViewModel property is named 'coursesList' (camelCase)
     val allCourses by catalogViewModel.coursesList.collectAsStateWithLifecycle()
 
-    // 2. Find the course by ID (More accurate than name)
     val course = allCourses.firstOrNull { it.id == courseId }
 
     if (course == null) {
@@ -48,13 +45,11 @@ fun CourseDetailScreen(
         return
     }
 
-    // 3. Map API Fields to UI Logic
     val fee = course.fee ?: 0.0
     val durationText = "${course.durationInWeeks ?: 0} Weeks"
     val deliveryMode = course.deliveryMode ?: "Physical"
     val type = course.type ?: "Private"
 
-    // Default description if API returns null
     val description = course.description ?: """
         ${course.name} is designed to help you build strong, practical skills. 
         You’ll learn core concepts with real-world examples and industry-style practices.
@@ -95,7 +90,6 @@ fun CourseDetailScreen(
                     Button(
                         onClick = {
                             val encodedName = android.net.Uri.encode(course.name)
-                            // Navigate with both Name and ID
                             navController.navigate("enrollment/$encodedName/${course.id}")
                         },
                         modifier = Modifier
@@ -122,13 +116,11 @@ fun CourseDetailScreen(
                 .verticalScroll(rememberScrollState())
         ) {
 
-            // --- HEADER IMAGE ---
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(260.dp)
             ) {
-                // Background Placeholder
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -143,7 +135,6 @@ fun CourseDetailScreen(
                     )
                 }
 
-                // Gradient Overlay
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -155,7 +146,6 @@ fun CourseDetailScreen(
                         )
                 )
 
-                // Back Button
                 Box(
                     modifier = Modifier
                         .padding(16.dp)
@@ -173,14 +163,13 @@ fun CourseDetailScreen(
                     )
                 }
 
-                // Title & Vendor
                 Column(
                     modifier = Modifier
                         .align(Alignment.BottomStart)
                         .padding(20.dp)
                 ) {
                     Text(
-                        text = type, // e.g. "Private" or "NAVTTC"
+                        text = type,
                         color = CorvitPrimaryRed,
                         fontFamily = Montserrat,
                         fontWeight = FontWeight.Bold,
@@ -201,15 +190,12 @@ fun CourseDetailScreen(
                 }
             }
 
-            // --- CONTENT ---
             Column(modifier = Modifier.padding(20.dp)) {
 
-                // Info Chips
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    // Mapped to new API fields
                     DetailChip(Icons.Default.DateRange, durationText)
                     DetailChip(Icons.Default.Person, deliveryMode)
                     DetailChip(Icons.Default.Info, if(fee == 0.0) "Funded" else "Paid")
@@ -217,7 +203,6 @@ fun CourseDetailScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // 1. KEY HIGHLIGHTS
                 Text(
                     text = "Key Highlights",
                     fontFamily = Montserrat,
@@ -243,7 +228,6 @@ fun CourseDetailScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // 2. ABOUT THIS COURSE
                 Text(
                     text = "About this Course",
                     fontFamily = Montserrat,
@@ -259,7 +243,6 @@ fun CourseDetailScreen(
                     lineHeight = 22.sp
                 )
 
-                // Syllabus Section (If available)
                 if (!course.syllabus.isNullOrEmpty()) {
                     Spacer(modifier = Modifier.height(24.dp))
                     Text(
@@ -283,8 +266,6 @@ fun CourseDetailScreen(
         }
     }
 }
-
-// --- HELPER COMPOSABLES ---
 
 @Composable
 fun VerticalDivider() {

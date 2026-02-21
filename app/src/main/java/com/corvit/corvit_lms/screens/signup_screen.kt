@@ -101,7 +101,7 @@ fun SignupScreen(navController: NavController, authViewModel: AuthViewModel) {
 
                     Spacer(modifier = Modifier.height(22.dp))
 
-                    // NAME FIELD
+
                     LabelledTextField(
                         label = "Full Name",
                         value = name,
@@ -112,7 +112,7 @@ fun SignupScreen(navController: NavController, authViewModel: AuthViewModel) {
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // EMAIL FIELD
+
                     LabelledTextField(
                         label = "Email",
                         value = email,
@@ -123,7 +123,7 @@ fun SignupScreen(navController: NavController, authViewModel: AuthViewModel) {
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // PASSWORD FIELD
+
                     LabelledTextField(
                         label = "Password",
                         value = password,
@@ -134,7 +134,7 @@ fun SignupScreen(navController: NavController, authViewModel: AuthViewModel) {
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // SIGN UP BUTTON
+
                     Button(
                         onClick = {
                             if (name.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty()) {
@@ -176,7 +176,7 @@ fun SignupScreen(navController: NavController, authViewModel: AuthViewModel) {
     }
 }
 
-// ✅ DEFINED LOCALLY AND PRIVATE TO FIX 'Unresolved Reference'
+
 @Composable
 private fun LabelledTextField(
     label: String,

@@ -168,7 +168,7 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // LOGIN BUTTON
+
                     Button(
                         onClick = { authViewModel.Login(email, password) },
                         colors = ButtonDefaults.buttonColors(
@@ -185,13 +185,13 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // GOOGLE SIGN-IN BUTTON
+
                     OutlinedButton(
                         onClick = {
                             coroutineScope.launch {
                                 val googleIdOption = GetGoogleIdOption.Builder()
                                     .setFilterByAuthorizedAccounts(false)
-                                    // Make sure to use your Type 3 Web Client ID here
+
                                     .setServerClientId("738353820122-qqfpe1f80rsbk62nkc19bi140m9152cr.apps.googleusercontent.com")
                                     .setAutoSelectEnabled(true)
                                     .build()
