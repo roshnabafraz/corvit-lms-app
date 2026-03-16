@@ -23,9 +23,9 @@
 
 ## 📖 About The Project
 
-**Corvit LMS** is a modern Android application designed to provide a seamless digital learning experience. Developed entirely in **Kotlin** with a fully reactive UI built on **Jetpack Compose**, the app empowers students and educators with an intuitive, efficient, and interactive platform. 
+**Corvit LMS** is a production-grade, enterprise-level Android application specially developed for the **CORVIT** organization to provide a seamless digital learning experience for their students and faculty. This is a real-world, live project that empowers the institute with an intuitive, efficient, and interactive educational platform.
 
-It covers all primary aspects of a student's learning lifecycle: from browsing courses and enrolling, tracking attendance and assignments, processing fees, and even streaming relevant video content directly via YouTube integration.
+Developed entirely in **Kotlin** with a fully reactive UI built on **Jetpack Compose**, the app covers all primary aspects of a student's learning lifecycle at CORVIT: from browsing courses and enrolling, tracking attendance and assignments, processing fees, and streaming relevant video content directly via YouTube integration.
 
 ### ✨ Key Features
 
